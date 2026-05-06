@@ -13,15 +13,16 @@ app.use(express.json());
 // SIGNUP
 app.post('/signup', async (req, res) => {
   try {
-    const { name, email, password, role, buurt } = req.body;
+    const { name, email, password, role, buurt, category, experience, bio, hourly_rate } = req.body;
     if (!name || !email || !password || !role || !buurt) {
       return res.status(400).json({ error: 'Vul alle velden in.' });
     }
-    await db.query(
-      'INSERT INTO users (name, email, password, role, buurt) VALUES (?, ?, ?, ?, ?)',
-      [name, email, password, role, buurt]
+    const [result] = await db.query(
+      'INSERT INTO users (name, email, password, role, buurt, category, experience, bio, hourly_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, email, password, role, buurt, category || null, experience || null, bio || null, hourly_rate || null]
     );
-    res.status(201).json({ message: 'Account aangemaakt!' });
+    const [rows] = await db.query('SELECT id, name, email, role, buurt, category, experience, bio, hourly_rate FROM users WHERE id = ?', [result.insertId]);
+    res.status(201).json({ message: 'Account aangemaakt!', user: rows[0] });
   } catch (err) {
     if (err.code === 'ER_DUP_ENTRY') {
       res.status(400).json({ error: 'Dit e-mailadres is al in gebruik.' });
@@ -71,6 +72,25 @@ app.get('/users', async (req, res) => {
   try {
     const [rows] = await db.query(
       'SELECT id, name, email, role, buurt, created_at FROM users'
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET categories with provider count + booking count, sorted by bookings
+app.get('/categories', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT u.category,
+              COUNT(DISTINCT u.id)  AS provider_count,
+              COUNT(b.id)           AS booking_count
+       FROM users u
+       LEFT JOIN bookings b ON b.dienstverlener_id = u.id
+       WHERE u.role = 'dienstverlener' AND u.category IS NOT NULL AND u.category != ''
+       GROUP BY u.category
+       ORDER BY booking_count DESC`
     );
     res.json(rows);
   } catch (err) {
@@ -281,6 +301,43 @@ app.put('/notifications/:id/read', async (req, res) => {
   try {
     await db.query('UPDATE notifications SET is_read = 1 WHERE user_id = ?', [req.params.id]);
     res.json({ message: 'Gelezen' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─────────────────────────────────────────
+// REVIEWS
+// ─────────────────────────────────────────
+
+// POST review
+app.post('/reviews', async (req, res) => {
+  try {
+    const { reviewer_id, provider_id, score, text } = req.body;
+    if (!reviewer_id || !provider_id || !score || !text) {
+      return res.status(400).json({ error: 'Vul alle velden in.' });
+    }
+    await db.query(
+      'INSERT INTO reviews (reviewer_id, provider_id, score, text) VALUES (?, ?, ?, ?)',
+      [reviewer_id, provider_id, score, text]
+    );
+    res.status(201).json({ message: 'Review geplaatst!' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET reviews for a provider
+app.get('/reviews/:id', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT r.*, u.name AS reviewer_name FROM reviews r
+       JOIN users u ON r.reviewer_id = u.id
+       WHERE r.provider_id = ?
+       ORDER BY r.created_at DESC`,
+      [req.params.id]
+    );
+    res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
