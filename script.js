@@ -563,7 +563,7 @@ function _renderProfile(w) {
       '<div class="profile-header-inner">' +
         '<button class="profile-back" onclick="showView(\'browse\')">&#8592; Terug</button>' +
         '<div class="profile-top">' +
-          '<div class="profile-avatar-lg">' + ini(w.name) + '</div>' +
+          (w.profile_picture ? '<img src="' + API + w.profile_picture + '" class="profile-avatar-lg" style="object-fit:cover">' : '<div class="profile-avatar-lg">' + ini(w.name) + '</div>') +
           '<div class="profile-header-info">' +
             '<h2>' + esc(w.name) + '</h2>' +
             (w.category ? '<div class="profile-cat">' + esc(w.category) + '</div>' : '') +
@@ -776,7 +776,7 @@ function renderDVDash(el) {
     '<div class="dashboard-grid">' +
       '<aside class="dashboard-sidebar">' +
         '<div class="dash-card">' +
-          '<div class="dash-avatar">' + ini(currentUser.name) + '</div>' +
+          (currentUser.profile_picture ? '<img src="' + API + currentUser.profile_picture + '" class="dash-avatar-img">' : '<div class="dash-avatar">' + ini(currentUser.name) + '</div>') +
           '<div class="dash-name">'   + esc(currentUser.name) + '</div>' +
           '<div class="dash-role-tag">Dienstverlener</div>' +
         '</div>' +
@@ -854,6 +854,14 @@ function _dvNotifs() {
 function _dvProfiel() {
   return '<div class="dash-panel hidden" id="dv-p-profiel">' +
     '<div class="dashboard-panel-title">Profiel bewerken</div>' +
+    '<div class="form-group"><label>Profielfoto</label>' +
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">' +
+    (currentUser.profile_picture ? '<img src="' + API + currentUser.profile_picture + '" style="width:56px;height:56px;border-radius:50%;object-fit:cover">' : '<div class="dash-avatar" style="width:56px;height:56px;font-size:1.2rem">' + ini(currentUser.name) + '</div>') +
+    '<input type="file" id="dv-avatar" accept="image/*">' +
+    '</div>' +
+    '<button class="btn-primary" onclick="uploadAvatar()" style="margin-bottom:12px">Foto uploaden</button>' +
+    '<div class="form-error" id="dv-avatar-msg"></div>' +
+    '</div>' +
     '<div class="form-group"><label>Naam</label><input type="text" id="dv-name" value="' + esc(currentUser.name) + '"></div>' +
     '<div class="form-group"><label>Categorie</label><input type="text" id="dv-cat" value="' + esc(currentUser.category || '') + '"></div>' +
     '<div class="form-group"><label>Ervaring</label><input type="text" id="dv-exp" value="' + esc(currentUser.experience || '') + '"></div>' +
@@ -885,7 +893,7 @@ function renderKlantDash(el) {
     '<div class="dashboard-grid">' +
       '<aside class="dashboard-sidebar">' +
         '<div class="dash-card">' +
-          '<div class="dash-avatar">' + ini(currentUser.name) + '</div>' +
+          (currentUser.profile_picture ? '<img src="' + API + currentUser.profile_picture + '" class="dash-avatar-img">' : '<div class="dash-avatar">' + ini(currentUser.name) + '</div>') +
           '<div class="dash-name">'   + esc(currentUser.name) + '</div>' +
           '<div class="dash-role-tag">Klant</div>' +
         '</div>' +
@@ -1132,6 +1140,27 @@ async function saveProfile() {
 }
 window.saveProfile = saveProfile;
 
+async function uploadAvatar() {
+  const file  = document.getElementById('dv-avatar')?.files[0];
+  const msgEl = document.getElementById('dv-avatar-msg');
+  if (!file) { msgEl.textContent = 'Kies eerst een afbeelding.'; return; }
+  const form = new FormData();
+  form.append('avatar', file);
+  try {
+    const r = await fetch(API + '/upload/avatar/' + currentUser.id, { method: 'POST', body: form });
+    const data = await r.json();
+    if (!r.ok) { msgEl.textContent = data.error; return; }
+    currentUser.profile_picture = data.url;
+    localStorage.setItem('mkd_user', JSON.stringify(currentUser));
+    msgEl.style.color = 'green';
+    msgEl.textContent = 'Foto opgeslagen!';
+    const navAv = document.getElementById('nav-avatar');
+    if (navAv) { navAv.outerHTML = '<img id="nav-avatar" src="' + API + data.url + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover">'; }
+    renderDashboard();
+  } catch { msgEl.textContent = 'Verbindingsfout.'; }
+}
+window.uploadAvatar = uploadAvatar;
+
 function saveAccountDV() {
   _saveAccount(
     document.getElementById('dv-new-email').value.trim(),
@@ -1262,6 +1291,7 @@ function injectDashCSS() {
     '.meta-score{background:#fff8e1;color:#b7791f;border-radius:20px;padding:2px 8px;font-size:.8rem;font-weight:600}',
     '.cat-icon{font-size:2rem;margin-bottom:8px}',
     '.btn-fav{font-size:1.1rem;background:none;border:none;cursor:pointer;padding:4px 8px;color:#e53e3e}',
+    '.dash-avatar-img{width:56px;height:56px;border-radius:50%;object-fit:cover;margin:0 auto 8px;display:block}',
   ].join('');
   document.head.appendChild(s);
 }

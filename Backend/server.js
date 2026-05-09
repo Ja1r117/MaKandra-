@@ -1,11 +1,25 @@
 import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { db } from './config/db.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, path.join(__dirname, 'uploads')),
+  filename:    (req, file, cb) => cb(null, 'avatar-' + req.params.id + path.extname(file.originalname)),
+});
+const upload = multer({ storage, limits: { fileSize: 2 * 1024 * 1024 }, fileFilter: (req, file, cb) => {
+  cb(null, /image\/(jpeg|png|webp|gif)/.test(file.mimetype));
+}});
 
 // ─────────────────────────────────────────
 // AUTH
@@ -60,6 +74,9 @@ app.post('/login', async (req, res) => {
         bio: user.bio,
         hourly_rate: user.hourly_rate,
         buurt: user.buurt,
+        phone: user.phone,
+        working_hours: user.working_hours,
+        profile_picture: user.profile_picture,
       },
     });
   } catch (err) {
@@ -107,7 +124,7 @@ app.get('/dienstverleners', async (req, res) => {
   try {
     const { buurt } = req.query;
     let query = `
-      SELECT u.id, u.name, u.category, u.experience, u.bio, u.hourly_rate, u.buurt,
+      SELECT u.id, u.name, u.category, u.experience, u.bio, u.hourly_rate, u.buurt, u.profile_picture,
              ROUND(AVG(r.score), 1) AS avg_score,
              COUNT(r.id) AS review_count
       FROM users u
@@ -365,6 +382,18 @@ function formatDur(min) {
 }
 
 // ─────────────────────────────────────────
+// UPLOAD AVATAR
+app.post('/upload/avatar/:id', upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Geen geldig afbeeldingsbestand.' });
+    const url = '/uploads/' + req.file.filename;
+    await db.query('UPDATE users SET profile_picture = ? WHERE id = ?', [url, req.params.id]);
+    res.json({ url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // START
 // ─────────────────────────────────────────
 
