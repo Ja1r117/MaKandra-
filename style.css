@@ -2121,3 +2121,37 @@ body.dark-mode input:-webkit-autofill:focus {
   -webkit-text-fill-color: #dddde8 !important;
   caret-color: #dddde8 !important;
 }
+
+/* Password strength indicator */
+.pw-strength { height: 4px; border-radius: 4px; margin-top: 6px; transition: all .3s; background: #e5e7eb; }
+.pw-strength.weak   { background: #ef4444; width: 33%; }
+.pw-strength.medium { background: #f59e0b; width: 66%; }
+.pw-strength.strong { background: #22c55e; width: 100%; }
+
+/* Verification notice */
+.verify-notice {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: .88rem;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.verify-notice strong { display: block; margin-bottom: 4px; }
+
+/* Admin dashboard cards */
+.admin-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.admin-stat-card { background: #f8f7f4; border: 1.5px solid #e8e4dc; border-radius: 12px; padding: 16px; text-align: center; }
+.admin-stat-card strong { display: block; font-size: 1.6rem; font-weight: 800; color: #6c47ff; }
+.admin-stat-card span { font-size: .78rem; color: #888; }
+.admin-user-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: .85rem; }
+.admin-user-row .au-name { flex: 1; font-weight: 600; }
+.admin-user-row .au-role { background: #f0ecff; color: #6c47ff; border-radius: 20px; padding: 2px 8px; font-size: .75rem; font-weight: 600; }
+.admin-user-row .au-role.dv { background: #fef3c7; color: #b45309; }
+.admin-user-row .au-unverified { background: #fee2e2; color: #991b1b; border-radius: 20px; padding: 2px 8px; font-size: .7rem; }
+.admin-del-btn { background: none; border: 1px solid #fca5a5; color: #ef4444; border-radius: 6px; padding: 3px 8px; cursor: pointer; font-size: .72rem; }
+.admin-del-btn:hover { background: #fee2e2; }
+body.dark-mode .admin-stat-card { background: #1e1e32; border-color: #2a2a3e; }
+body.dark-mode .admin-user-row { border-color: #2a2a3e; }

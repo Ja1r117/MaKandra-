@@ -45,6 +45,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // nav-auth buttons have their own inline onclick — no extra listener needed
 
+  // Password strength indicators
+  ['su-password', 'pv-password'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', function () {
+      const prefix = id.split('-')[0];
+      const el = document.getElementById(prefix + '-pw-strength');
+      if (!el) return;
+      const v = this.value;
+      el.className = 'pw-strength';
+      if (!v) return;
+      const strong = v.length >= 10 && /[A-Z]/.test(v) && /\d/.test(v);
+      const medium = v.length >= 6;
+      el.classList.add(strong ? 'strong' : medium ? 'medium' : 'weak');
+    });
+  });
+
   document.getElementById('browse-search')?.addEventListener('input', applyFilters);
   document.getElementById('filter-district')?.addEventListener('change', applyFilters);
   document.getElementById('filter-sort')?.addEventListener('change', applyFilters);
@@ -102,14 +117,17 @@ async function handleLogin() {
   const password = document.getElementById('login-password').value;
   const errEl    = document.getElementById('login-error');
   errEl.textContent = '';
+  errEl.classList.remove('hidden');
 
-  if (!email)    { errEl.textContent = 'Voer uw e-mailadres in.'; return; }
-  if (!password) { errEl.textContent = 'Voer uw wachtwoord in.'; return; }
+  if (!email)    { errEl.textContent = 'Voer je e-mailadres in.'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { errEl.textContent = 'Voer een geldig e-mailadres in.'; return; }
+  if (!password) { errEl.textContent = 'Voer je wachtwoord in.'; return; }
 
   try {
     const r    = await fetch(API + '/login', { method: 'POST', headers: ct(), body: JSON.stringify({ email, password }) });
     const data = await r.json();
     if (!r.ok) { errEl.textContent = data.error; return; }
+    errEl.classList.add('hidden');
     currentUser = data.user;
     localStorage.setItem('mkd_user', JSON.stringify(currentUser));
     document.getElementById('auth-overlay').classList.add('hidden');
@@ -117,7 +135,7 @@ async function handleLogin() {
     showToast('Welkom terug, ' + currentUser.name + '!', 'success');
     pollNotifications();
     setInterval(pollNotifications, 30000);
-  } catch { errEl.textContent = 'Verbindingsfout.'; }
+  } catch { errEl.textContent = 'Verbindingsfout. Controleer of de server actief is.'; }
 }
 
 async function handleSignup() {
@@ -125,33 +143,34 @@ async function handleSignup() {
   const lastName  = document.getElementById('su-lastname').value.trim();
   const email     = document.getElementById('su-email').value.trim();
   const password  = document.getElementById('su-password').value;
+  const confirm   = document.getElementById('su-confirm-password').value;
   const buurt     = document.getElementById('su-district').value;
   const errEl     = document.getElementById('signup-error');
   errEl.textContent = '';
+  errEl.classList.remove('hidden');
 
-  if (!firstName)              { errEl.textContent = 'Voornaam is verplicht.'; return; }
-  if (!email)                  { errEl.textContent = 'E-mailadres is verplicht.'; return; }
-  if (!/\S+@\S+\.\S+/.test(email)) { errEl.textContent = 'Voer een geldig e-mailadres in.'; return; }
-  if (!password)               { errEl.textContent = 'Wachtwoord is verplicht.'; return; }
-  if (password.length < 6)     { errEl.textContent = 'Wachtwoord moet minimaal 6 tekens zijn.'; return; }
-  if (!buurt)                  { errEl.textContent = 'Selecteer een district.'; return; }
+  if (!firstName)                  { errEl.textContent = 'Voornaam is verplicht.'; return; }
+  if (!email)                      { errEl.textContent = 'E-mailadres is verplicht.'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { errEl.textContent = 'Voer een geldig e-mailadres in (bijv. naam@domein.com).'; return; }
+  if (!password)                   { errEl.textContent = 'Wachtwoord is verplicht.'; return; }
+  if (password.length < 6)         { errEl.textContent = 'Wachtwoord moet minimaal 6 tekens zijn.'; return; }
+  if (password !== confirm)        { errEl.textContent = 'Wachtwoorden komen niet overeen.'; return; }
+  if (!buurt)                      { errEl.textContent = 'Selecteer een district.'; return; }
 
   const name = lastName ? firstName + ' ' + lastName : firstName;
   try {
     const r    = await fetch(API + '/signup', { method: 'POST', headers: ct(), body: JSON.stringify({ name, email, password, role: 'klant', buurt }) });
     const data = await r.json();
     if (!r.ok) { errEl.textContent = data.error; return; }
-    if (data.user) {
-      currentUser = data.user;
-      localStorage.setItem('mkd_user', JSON.stringify(currentUser));
-      document.getElementById('auth-overlay').classList.add('hidden');
-      afterLogin();
-      showToast('Account aangemaakt!', 'success');
-    } else {
-      switchAuthTab('login');
-      showToast('Account aangemaakt! Log nu in.', 'success');
-    }
-  } catch { errEl.textContent = 'Verbindingsfout.'; }
+    errEl.classList.add('hidden');
+    currentUser = data.user;
+    localStorage.setItem('mkd_user', JSON.stringify(currentUser));
+    document.getElementById('auth-overlay').classList.add('hidden');
+    afterLogin();
+    showToast('Welkom bij MaKandra, ' + currentUser.name + '!', 'success');
+    pollNotifications();
+    setInterval(pollNotifications, 30000);
+  } catch { errEl.textContent = 'Verbindingsfout. Controleer of de server actief is.'; }
 }
 
 async function handleProviderSignup() {
@@ -159,6 +178,7 @@ async function handleProviderSignup() {
   const lastName     = document.getElementById('pv-lastname').value.trim();
   const email        = document.getElementById('pv-email').value.trim();
   const password     = document.getElementById('pv-password').value;
+  const confirm      = document.getElementById('pv-confirm-password').value;
   const buurt        = document.getElementById('pv-district').value;
   const category     = document.getElementById('pv-category').value;
   const bio          = document.getElementById('pv-tagline')?.value.trim() || '';
@@ -167,31 +187,31 @@ async function handleProviderSignup() {
   const working_hours = _schedPickerVal('pv') || null;
   const errEl        = document.getElementById('provider-error');
   errEl.textContent  = '';
+  errEl.classList.remove('hidden');
 
-  if (!firstName)              { errEl.textContent = 'Voornaam is verplicht.'; return; }
-  if (!email)                  { errEl.textContent = 'E-mailadres is verplicht.'; return; }
-  if (!/\S+@\S+\.\S+/.test(email)) { errEl.textContent = 'Voer een geldig e-mailadres in.'; return; }
-  if (!password)               { errEl.textContent = 'Wachtwoord is verplicht.'; return; }
-  if (password.length < 6)     { errEl.textContent = 'Wachtwoord moet minimaal 6 tekens zijn.'; return; }
-  if (!buurt)                  { errEl.textContent = 'Selecteer een district.'; return; }
-  if (!category)               { errEl.textContent = 'Selecteer een categorie.'; return; }
+  if (!firstName)                  { errEl.textContent = 'Voornaam is verplicht.'; return; }
+  if (!email)                      { errEl.textContent = 'E-mailadres is verplicht.'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { errEl.textContent = 'Voer een geldig e-mailadres in (bijv. naam@domein.com).'; return; }
+  if (!password)                   { errEl.textContent = 'Wachtwoord is verplicht.'; return; }
+  if (password.length < 6)         { errEl.textContent = 'Wachtwoord moet minimaal 6 tekens zijn.'; return; }
+  if (password !== confirm)        { errEl.textContent = 'Wachtwoorden komen niet overeen.'; return; }
+  if (!buurt)                      { errEl.textContent = 'Selecteer een district.'; return; }
+  if (!category)                   { errEl.textContent = 'Selecteer een categorie.'; return; }
 
   const name = lastName ? firstName + ' ' + lastName : firstName;
   try {
     const r    = await fetch(API + '/signup', { method: 'POST', headers: ct(), body: JSON.stringify({ name, email, password, role: 'dienstverlener', buurt, category, bio, hourly_rate, phone, working_hours }) });
     const data = await r.json();
     if (!r.ok) { errEl.textContent = data.error; return; }
-    if (data.user) {
-      currentUser = data.user;
-      localStorage.setItem('mkd_user', JSON.stringify(currentUser));
-      document.getElementById('auth-overlay').classList.add('hidden');
-      afterLogin();
-      showToast('Profiel aangemaakt!', 'success');
-    } else {
-      switchAuthTab('login');
-      showToast('Account aangemaakt! Log nu in.', 'success');
-    }
-  } catch { errEl.textContent = 'Verbindingsfout.'; }
+    errEl.classList.add('hidden');
+    currentUser = data.user;
+    localStorage.setItem('mkd_user', JSON.stringify(currentUser));
+    document.getElementById('auth-overlay').classList.add('hidden');
+    afterLogin();
+    showToast('Welkom bij MaKandra, ' + currentUser.name + '!', 'success');
+    pollNotifications();
+    setInterval(pollNotifications, 30000);
+  } catch { errEl.textContent = 'Verbindingsfout. Controleer of de server actief is.'; }
 }
 
 // ─────────────────────────────────────────
@@ -1146,10 +1166,11 @@ function renderDVDash(el) {
           '<div class="dash-menu-item" onclick="dvTab(\'notificaties\',this)">Notificaties</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'profiel\',this)">Profiel bewerken</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'account\',this)">Account</div>' +
+          (currentUser.is_admin ? '<div class="dash-menu-item" onclick="dvTab(\'admin\',this)">Beheer</div>' : '') +
         '</nav>' +
       '</aside>' +
       '<div class="dashboard-panel">' +
-        _dvOverzicht() + _dvBoekingen() + _dvOpdrachten() + _dvAgenda() + _dvNotifs() + _dvProfiel() + _dvAccount() +
+        _dvOverzicht() + _dvBoekingen() + _dvOpdrachten() + _dvAgenda() + _dvNotifs() + _dvProfiel() + _dvAccount() + (currentUser.is_admin ? _dvAdminPanel() : '') +
       '</div>' +
     '</div>';
 
@@ -1168,6 +1189,7 @@ function dvTab(panel, el) {
   if (panel === 'opdrachten')   loadDVOpdrachten();
   if (panel === 'agenda')       renderCalendar();
   if (panel === 'notificaties') loadDVNotifications();
+  if (panel === 'admin')        loadAdminPanel();
 }
 window.dvTab = dvTab;
 
@@ -1317,15 +1339,21 @@ async function respondToJob(jobId) {
 window.respondToJob = respondToJob;
 
 function _dvAccount() {
-  const isDark = document.body.classList.contains('dark-mode');
   return '<div class="dash-panel hidden" id="dv-p-account">' +
     '<div class="dashboard-panel-title">Account instellingen</div>' +
     _darkModeCard() +
-    '<div class="form-group"><label>Nieuw e-mailadres</label><input type="email" id="dv-new-email" placeholder="' + esc(currentUser.email) + '"></div>' +
-    '<div class="form-group"><label>Huidig wachtwoord</label><input type="password" id="dv-cur-pw"></div>' +
-    '<div class="form-group"><label>Nieuw wachtwoord</label><input type="password" id="dv-new-pw"></div>' +
-    '<button class="btn-primary" onclick="saveAccountDV()">Opslaan</button>' +
+    '<div class="form-group"><label>Huidig e-mailadres</label><input type="text" disabled value="' + esc(currentUser.email) + '" style="background:#f5f5f5;color:#888"></div>' +
+    '<div class="form-group"><label>Nieuw e-mailadres <span style="color:#aaa;font-size:.8rem">(laat leeg om ongewijzigd te laten)</span></label><input type="email" id="dv-new-email" placeholder="nieuw@email.com"></div>' +
+    '<div class="form-group"><label>Huidig wachtwoord <span style="color:#e53e3e">*</span></label><input type="password" id="dv-cur-pw" placeholder="Verplicht voor wijzigingen"></div>' +
     '<div class="form-error" id="dv-acc-msg"></div>' +
+    '<button class="btn-primary" onclick="saveAccountDV()">E-mail opslaan</button>' +
+    '<hr style="margin:20px 0;border:none;border-top:1px solid #f0f0f0">' +
+    '<div class="dashboard-panel-title" style="font-size:1rem">Wachtwoord wijzigen</div>' +
+    '<p style="font-size:.83rem;color:#888;margin-bottom:14px">Na het opslaan ontvang je een bevestigingsmail. Klik op de link in de e-mail om het nieuwe wachtwoord te activeren.</p>' +
+    '<div class="form-group"><label>Nieuw wachtwoord</label><input type="password" id="dv-new-pw" placeholder="Minimaal 6 tekens"></div>' +
+    '<div class="form-group"><label>Nieuw wachtwoord bevestigen</label><input type="password" id="dv-new-pw-confirm" placeholder="Herhaal nieuw wachtwoord"></div>' +
+    '<div class="form-error" id="dv-pw-msg"></div>' +
+    '<button class="btn-primary" onclick="requestPasswordChange(\'dv\')">Wachtwoord wijzigen (bevestiging per e-mail)</button>' +
   '</div>';
 }
 
@@ -1347,11 +1375,13 @@ function renderKlantDash(el) {
           '<div class="dash-menu-item" onclick="klantTab(\'favorieten\',this)">Favorieten</div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'reviews\',this)">Mijn reviews</div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'notificaties\',this)">Notificaties</div>' +
+          '<div class="dash-menu-item" onclick="klantTab(\'profiel\',this)">Mijn profiel</div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'account\',this)">Account</div>' +
+          (currentUser.is_admin ? '<div class="dash-menu-item" onclick="klantTab(\'admin\',this)">Beheer</div>' : '') +
         '</nav>' +
       '</aside>' +
       '<div class="dashboard-panel">' +
-        _klantOverzicht() + _klantBoekingen() + _klantOpdrachten() + _klantFavorieten() + _klantReviews() + _klantNotifs() + _klantAccount() +
+        _klantOverzicht() + _klantBoekingen() + _klantOpdrachten() + _klantFavorieten() + _klantReviews() + _klantNotifs() + _klantProfiel() + _klantAccount() + (currentUser.is_admin ? _adminPanel() : '') +
       '</div>' +
     '</div>';
 
@@ -1370,6 +1400,7 @@ function klantTab(panel, el) {
   if (panel === 'favorieten')   loadKlantFavorieten();
   if (panel === 'reviews')      loadKlantReviews();
   if (panel === 'notificaties') loadKlantNotifications();
+  if (panel === 'admin')        loadAdminPanel();
 }
 window.klantTab = klantTab;
 
@@ -1507,7 +1538,7 @@ function _klantNotifs() {
 
 function _klantProfiel() {
   return '<div class="dash-panel hidden" id="kl-p-profiel">' +
-    '<div class="dashboard-panel-title">Profiel bewerken</div>' +
+    '<div class="dashboard-panel-title">Mijn profiel</div>' +
     '<div class="form-group">' +
     '<label>Profielfoto</label>' +
     '<div class="pfp-upload-wrap" onclick="document.getElementById(\'kl-avatar\').click()" title="Klik om foto te wijzigen">' +
@@ -1521,28 +1552,36 @@ function _klantProfiel() {
     '<div class="form-error" id="kl-avatar-msg"></div>' +
     '</div>' +
     '<div class="form-group"><label>Naam</label><input type="text" id="kl-name" value="' + esc(currentUser.name) + '"></div>' +
-    '<button class="btn-primary" onclick="saveKlantName()">Opslaan</button>' +
+    '<div class="form-group">' +
+      '<label>Over mij <span style="color:#aaa;font-size:.8rem;font-weight:400">(optioneel)</span></label>' +
+      '<textarea id="kl-bio" rows="4" placeholder="Vertel iets over jezelf...">' + esc(currentUser.bio || '') + '</textarea>' +
+    '</div>' +
+    '<button class="btn-primary" onclick="saveKlantProfile()">Opslaan</button>' +
     '<div class="form-error" id="kl-prof-msg"></div>' +
   '</div>';
 }
 
-async function saveKlantName() {
+async function saveKlantProfile() {
   const name  = document.getElementById('kl-name')?.value.trim();
+  const bio   = document.getElementById('kl-bio')?.value.trim() || null;
   const msgEl = document.getElementById('kl-prof-msg');
-  if (!name) { msgEl.textContent = 'Naam is verplicht.'; return; }
+  if (!name) { msgEl.style.color = ''; msgEl.textContent = 'Naam is verplicht.'; return; }
   try {
-    const r = await fetch(API + '/update-name/' + currentUser.id, { method: 'PUT', headers: ct(), body: JSON.stringify({ name }) });
+    const r = await fetch(API + '/klant-profile/' + currentUser.id, { method: 'PUT', headers: ct(), body: JSON.stringify({ name, bio }) });
     const data = await r.json();
-    if (!r.ok) { msgEl.textContent = data.error; return; }
+    if (!r.ok) { msgEl.style.color = ''; msgEl.textContent = data.error; return; }
     currentUser.name = name;
+    currentUser.bio  = bio;
     localStorage.setItem('mkd_user', JSON.stringify(currentUser));
     msgEl.style.color = 'green';
-    msgEl.textContent = 'Naam opgeslagen!';
+    msgEl.textContent = 'Profiel opgeslagen!';
     if (document.getElementById('nav-username')) document.getElementById('nav-username').textContent = name;
     if (document.getElementById('nav-avatar'))   document.getElementById('nav-avatar').textContent   = ini(name);
   } catch { msgEl.textContent = 'Verbindingsfout.'; }
 }
-window.saveKlantName = saveKlantName;
+window.saveKlantProfile = saveKlantProfile;
+// Keep old alias for backward compat
+window.saveKlantName = saveKlantProfile;
 
 function _catOpts() {
   return '<option value="">Kies categorie</option>' +
@@ -1673,14 +1712,98 @@ function _klantAccount() {
   return '<div class="dash-panel hidden" id="kl-p-account">' +
     '<div class="dashboard-panel-title">Account instellingen</div>' +
     _darkModeCard() +
-    '<div class="form-group"><label>Nieuw e-mailadres</label><input type="email" id="kl-new-email" placeholder="' + esc(currentUser.email) + '"></div>' +
-    '<div class="form-group"><label>Buurt</label><select id="kl-buurt">' + distOpts(currentUser.buurt) + '</select></div>' +
-    '<div class="form-group"><label>Huidig wachtwoord</label><input type="password" id="kl-cur-pw"></div>' +
-    '<div class="form-group"><label>Nieuw wachtwoord</label><input type="password" id="kl-new-pw"></div>' +
-    '<button class="btn-primary" onclick="saveAccountKlant()">Opslaan</button>' +
+    '<div class="form-group"><label>Huidig e-mailadres</label><input type="text" disabled value="' + esc(currentUser.email) + '" style="background:#f5f5f5;color:#888"></div>' +
+    '<div class="form-group"><label>Nieuw e-mailadres <span style="color:#aaa;font-size:.8rem">(laat leeg om ongewijzigd te laten)</span></label><input type="email" id="kl-new-email" placeholder="nieuw@email.com"></div>' +
+    '<div class="form-group"><label>District</label><select id="kl-buurt">' + distOpts(currentUser.buurt) + '</select></div>' +
+    '<div class="form-group"><label>Huidig wachtwoord <span style="color:#e53e3e">*</span></label><input type="password" id="kl-cur-pw" placeholder="Verplicht voor wijzigingen"></div>' +
     '<div class="form-error" id="kl-acc-msg"></div>' +
+    '<button class="btn-primary" onclick="saveAccountKlant()">E-mail / District opslaan</button>' +
+    '<hr style="margin:20px 0;border:none;border-top:1px solid #f0f0f0">' +
+    '<div class="dashboard-panel-title" style="font-size:1rem">Wachtwoord wijzigen</div>' +
+    '<p style="font-size:.83rem;color:#888;margin-bottom:14px">Na het opslaan ontvang je een bevestigingsmail. Klik op de link in de e-mail om het nieuwe wachtwoord te activeren.</p>' +
+    '<div class="form-group"><label>Nieuw wachtwoord</label><input type="password" id="kl-new-pw" placeholder="Minimaal 6 tekens"></div>' +
+    '<div class="form-group"><label>Nieuw wachtwoord bevestigen</label><input type="password" id="kl-new-pw-confirm" placeholder="Herhaal nieuw wachtwoord"></div>' +
+    '<div class="form-error" id="kl-pw-msg"></div>' +
+    '<button class="btn-primary" onclick="requestPasswordChange(\'kl\')">Wachtwoord wijzigen (bevestiging per e-mail)</button>' +
   '</div>';
 }
+
+// ─────────────────────────────────────────
+// ADMIN DASHBOARD
+// ─────────────────────────────────────────
+
+function _adminPanel() {
+  return '<div class="dash-panel hidden" id="kl-p-admin">' +
+    '<div class="dashboard-panel-title">Beheerdersdashboard</div>' +
+    '<div class="admin-stat-grid" id="admin-stats-grid"><p style="color:#aaa">Laden...</p></div>' +
+    '<div class="dashboard-panel-title" style="font-size:1rem;margin-top:20px">Gebruikers</div>' +
+    '<div id="admin-user-list"><p style="color:#aaa;font-size:.85rem">Laden...</p></div>' +
+  '</div>';
+}
+
+function _dvAdminPanel() {
+  return '<div class="dash-panel hidden" id="dv-p-admin">' +
+    '<div class="dashboard-panel-title">Beheerdersdashboard</div>' +
+    '<div class="admin-stat-grid" id="admin-stats-grid"><p style="color:#aaa">Laden...</p></div>' +
+    '<div class="dashboard-panel-title" style="font-size:1rem;margin-top:20px">Gebruikers</div>' +
+    '<div id="admin-user-list"><p style="color:#aaa;font-size:.85rem">Laden...</p></div>' +
+  '</div>';
+}
+
+async function loadAdminPanel() {
+  if (!currentUser?.is_admin) return;
+  const statsEl = document.getElementById('admin-stats-grid');
+  const listEl  = document.getElementById('admin-user-list');
+  if (!statsEl || !listEl) return;
+
+  try {
+    const [sRes, uRes] = await Promise.all([
+      fetch(API + '/admin/stats', { headers: { 'x-user-id': currentUser.id } }),
+      fetch(API + '/admin/users', { headers: { 'x-user-id': currentUser.id } }),
+    ]);
+    const stats = await sRes.json();
+    const users = await uRes.json();
+
+    if (!sRes.ok) { statsEl.innerHTML = '<p style="color:red">' + esc(stats.error) + '</p>'; return; }
+
+    statsEl.innerHTML =
+      statCard(stats.total_users,    'Gebruikers') +
+      statCard(stats.total_klanten,  'Klanten') +
+      statCard(stats.total_dv,       'Dienstverleners') +
+      statCard(stats.total_bookings, 'Boekingen') +
+      statCard(stats.total_jobs,     'Opdrachten') +
+      statCard(stats.unverified,     'Niet-geverifieerd');
+
+    if (!uRes.ok || !users.length) { listEl.innerHTML = '<p class="empty-plain">Geen gebruikers gevonden.</p>'; return; }
+    listEl.innerHTML = users.map(u =>
+      '<div class="admin-user-row">' +
+        '<div class="au-name">' + esc(u.name) + '<div style="font-size:.75rem;color:#aaa">' + esc(u.email) + '</div></div>' +
+        '<span class="au-role' + (u.role === 'dienstverlener' ? ' dv' : '') + '">' + esc(u.role) + '</span>' +
+        (u.is_admin ? '<span class="au-role" style="background:#f0ecff;color:#6c47ff">admin</span>' : '') +
+        (!u.email_verified ? '<span class="au-unverified">Niet geverif.</span>' : '') +
+        (u.id !== currentUser.id ? '<button class="admin-del-btn" onclick="adminDeleteUser(' + u.id + ',\'' + esc(u.name) + '\')">Verwijderen</button>' : '') +
+      '</div>'
+    ).join('');
+  } catch { statsEl.innerHTML = '<p style="color:red">Fout bij laden beheerdata.</p>'; }
+}
+window.loadAdminPanel = loadAdminPanel;
+
+function statCard(n, label) {
+  return '<div class="admin-stat-card"><strong>' + (n ?? '—') + '</strong><span>' + label + '</span></div>';
+}
+
+async function adminDeleteUser(userId, name) {
+  if (!confirm('Gebruiker "' + name + '" definitief verwijderen?')) return;
+  try {
+    const r = await fetch(API + '/admin/users/' + userId, {
+      method: 'DELETE', headers: { 'x-user-id': currentUser.id },
+    });
+    const data = await r.json();
+    showToast(r.ok ? 'Gebruiker verwijderd.' : data.error, r.ok ? 'info' : 'error');
+    if (r.ok) loadAdminPanel();
+  } catch { showToast('Verbindingsfout.', 'error'); }
+}
+window.adminDeleteUser = adminDeleteUser;
 
 // ─────────────────────────────────────────
 // BOOKINGS
@@ -1970,47 +2093,73 @@ async function toggleAvailability(isAvail) {
 window.toggleAvailability = toggleAvailability;
 
 function saveAccountDV() {
-  _saveAccount(
-    document.getElementById('dv-new-email').value.trim(),
-    document.getElementById('dv-cur-pw').value,
-    document.getElementById('dv-new-pw').value,
-    null,
-    'dv-acc-msg'
-  );
+  const newEmail = document.getElementById('dv-new-email').value.trim();
+  const curPw    = document.getElementById('dv-cur-pw').value;
+  const msgEl    = document.getElementById('dv-acc-msg');
+  _saveAccountEmail(newEmail, curPw, null, msgEl);
 }
 window.saveAccountDV = saveAccountDV;
 
 function saveAccountKlant() {
-  _saveAccount(
-    document.getElementById('kl-new-email').value.trim(),
-    document.getElementById('kl-cur-pw').value,
-    document.getElementById('kl-new-pw').value,
-    document.getElementById('kl-buurt').value,
-    'kl-acc-msg'
-  );
+  const newEmail = document.getElementById('kl-new-email').value.trim();
+  const curPw    = document.getElementById('kl-cur-pw').value;
+  const newBuurt = document.getElementById('kl-buurt').value;
+  const msgEl    = document.getElementById('kl-acc-msg');
+  _saveAccountEmail(newEmail, curPw, newBuurt, msgEl);
 }
 window.saveAccountKlant = saveAccountKlant;
 
-async function _saveAccount(newEmail, curPw, newPw, newBuurt, msgId) {
-  const msgEl = document.getElementById(msgId);
+async function _saveAccountEmail(newEmail, curPw, newBuurt, msgEl) {
+  msgEl.style.color = '';
   if (!curPw) { msgEl.textContent = 'Vul je huidig wachtwoord in.'; return; }
+  if (newEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(newEmail)) {
+    msgEl.textContent = 'Voer een geldig e-mailadres in.'; return;
+  }
+  if (!newEmail && !newBuurt) { msgEl.textContent = 'Geen wijzigingen om op te slaan.'; return; }
 
   const body = { current_password: curPw };
-  if (newEmail)  body.email        = newEmail;
-  if (newPw)     body.new_password = newPw;
-  if (newBuurt)  body.buurt        = newBuurt;
+  if (newEmail)  body.email = newEmail;
+  if (newBuurt)  body.buurt = newBuurt;
 
   try {
     const r = await fetch(API + '/account/' + currentUser.id, { method: 'PUT', headers: ct(), body: JSON.stringify(body) });
     const data = await r.json();
     if (!r.ok) { msgEl.textContent = data.error; return; }
-    if (newEmail)  currentUser.email = newEmail;
-    if (newBuurt)  currentUser.buurt = newBuurt;
+    if (newEmail) currentUser.email = newEmail;
+    if (newBuurt) currentUser.buurt = newBuurt;
     localStorage.setItem('mkd_user', JSON.stringify(currentUser));
     msgEl.style.color = 'green';
-    msgEl.textContent = 'Account bijgewerkt!';
+    msgEl.textContent = 'Gegevens bijgewerkt!';
   } catch { msgEl.textContent = 'Verbindingsfout.'; }
 }
+
+async function requestPasswordChange(prefix) {
+  const curPw   = document.getElementById(prefix === 'dv' ? 'dv-cur-pw' : 'kl-cur-pw')?.value;
+  const newPw   = document.getElementById(prefix + '-new-pw')?.value;
+  const confirm = document.getElementById(prefix + '-new-pw-confirm')?.value;
+  const msgEl   = document.getElementById(prefix + '-pw-msg');
+  msgEl.style.color = '';
+  msgEl.textContent = '';
+
+  if (!curPw)              { msgEl.textContent = 'Vul je huidig wachtwoord in.'; return; }
+  if (!newPw)              { msgEl.textContent = 'Vul een nieuw wachtwoord in.'; return; }
+  if (newPw.length < 6)   { msgEl.textContent = 'Nieuw wachtwoord moet minimaal 6 tekens zijn.'; return; }
+  if (newPw !== confirm)   { msgEl.textContent = 'Wachtwoorden komen niet overeen.'; return; }
+
+  try {
+    const r = await fetch(API + '/change-password/request', {
+      method: 'POST', headers: ct(),
+      body: JSON.stringify({ user_id: currentUser.id, current_password: curPw, new_password: newPw }),
+    });
+    const data = await r.json();
+    if (!r.ok) { msgEl.textContent = data.error; return; }
+    msgEl.style.color = 'green';
+    msgEl.textContent = data.message;
+    document.getElementById(prefix + '-new-pw').value         = '';
+    document.getElementById(prefix + '-new-pw-confirm').value = '';
+  } catch { msgEl.textContent = 'Verbindingsfout.'; }
+}
+window.requestPasswordChange = requestPasswordChange;
 
 // ─────────────────────────────────────────
 // TOAST
