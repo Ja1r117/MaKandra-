@@ -15,7 +15,7 @@
 <nav id="navbar">
   <div class="nav-container">
     <div class="nav-logo" onclick="showView('home')">
-      <img src="MKDRA.png" alt="MaKandra Logo" class="nav-logo-img" />
+      <img src="mkdra.png" alt="MaKandra Logo" class="nav-logo-img" />
     </div>
     <div class="nav-links">
       <a class="nav-link klant-only" onclick="showView('browse')">Diensten</a>
@@ -295,7 +295,7 @@
       <div class="footer-grid">
         <div class="footer-brand">
           <div class="footer-logo">
-            <img src="MKDRA.png" alt="MaKandra" style="height:100px;width:auto;" />
+            <img src="mkdra.png" alt="MaKandra" style="height:100px;width:auto;" />
           </div>
           <p>MaKandra staat voor samenwerking en vooruitgang. Wij geloven in persoonlijke service en duurzame relaties, zodat elke klant zich gehoord en geholpen voelt.</p>
           <div class="footer-flag">🇸🇷 Trots gemaakt in Suriname</div>
@@ -648,6 +648,10 @@
 <!-- ═══════════════════════════════════ TOAST ═══════════════════════════════════ -->
 <div id="toast" class="toast hidden"></div>
 
+<script>
+  // Replace this with your deployed backend URL when the frontend is hosted publicly.
+  window.API_BASE = window.API_BASE || 'http://localhost:3000';
+</script>
 <script src="script.js"></script>
 </body>
 </html>

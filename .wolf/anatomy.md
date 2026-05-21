@@ -22,22 +22,22 @@
 
 - `openwolf.md` (~313 tok)
 
-## Backend/
+## backend/
 
 - `CLAUDE.md` — OpenWolf (~57 tok)
 - `package-lock.json` — npm lock file (~15726 tok)
 - `package.json` — Node.js package manifest (~128 tok)
 - `server.js` — API routes: POST, GET, PUT (9 endpoints) (~11835 tok)
 
-## Backend/.claude/
+## backend/.claude/
 
 - `settings.json` (~441 tok)
 
-## Backend/.claude/rules/
+## backend/.claude/rules/
 
 - `openwolf.md` (~313 tok)
 
-## Backend/config/
+## backend/config/
 
 - `db.js` — Exports db (~77 tok)
 

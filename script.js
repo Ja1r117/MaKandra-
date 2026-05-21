@@ -1,7 +1,7 @@
 // MaKandra — script.js  (API-connected)
 'use strict';
 
-const API = 'http://localhost:3000';
+const API = window.API_BASE || 'http://localhost:3000';
 
 let currentUser    = null;
 let allWorkers     = [];

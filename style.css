@@ -481,7 +481,7 @@ img { max-width: 100%; display: block; }
   position: relative;
   padding: 100px 0;
   overflow: hidden;
-  background-image: url('BACKGROUND.jpeg');
+  background-image: url('background.jpeg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -573,7 +573,7 @@ img { max-width: 100%; display: block; }
 .card-schilders { background-image: url('schilder.jpg'); }
 .card-elektriciens { background-image: url('elektriciens.jpg'); }
 .card-hoveniers { background-image: url('hoveniers.jpg'); }
-.card-bank-mattenreiniging { background-image: url('Mattenreiniging.jpg'); }
+.card-bank-mattenreiniging { background-image: url('mattenreiniging.jpg'); }
 .card-fotografie { background-image: url('fotografie.jpg'); }
 .card-video-animatie { background-image: url('video.jpg'); }
 .card-muziek-audio { background-image: url('muziek.jpg'); }
