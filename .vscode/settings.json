@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^powershell -NoProfile -Command \"Remove-Item -LiteralPath '\\.\\\\backend\\\\node_modules' -Recurse -Force\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
