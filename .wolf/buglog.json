@@ -176,6 +176,118 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-23T20:45:02.454Z"
+    },
+    {
+      "id": "bug-012",
+      "timestamp": "2026-05-23T20:50:50.247Z",
+      "error_message": "Incorrect value in code",
+      "file": "../index (1).html",
+      "root_cause": "Had \"style.css\"",
+      "fix": "Changed to \"MaKandra-/style.css\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "html"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-05-23T20:51:01.143Z"
+    },
+    {
+      "id": "bug-013",
+      "timestamp": "2026-05-23T20:52:20.891Z",
+      "error_message": "Significant refactor of ",
+      "file": "../index (1).html",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 5→7 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "html"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-23T20:52:20.891Z"
+    },
+    {
+      "id": "bug-014",
+      "timestamp": "2026-05-23T21:00:01.278Z",
+      "error_message": "Significant refactor of ",
+      "file": "script.js",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 4→8 lines (3 removed) | Also: '.prof-cover{background:linear-gradient(135deg,#1B; '.prof-cover-tags{display:flex;gap:8px;flex-wrap:w",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-05-23T21:02:06.646Z"
+    },
+    {
+      "id": "bug-015",
+      "timestamp": "2026-05-23T21:08:33.354Z",
+      "error_message": "Significant refactor of ",
+      "file": "script.js",
+      "root_cause": "23 lines replaced/restructured",
+      "fix": "Rewrote 24→36 lines (23 removed) | Also: '<div class=\"phs-num\">' + (scoreNum || '—') + '%</; '<div class=\"phs-label\">Vertrouwensscore</div>' + | Also: const slider = document.getElementById('review-rat; slider.value = 75;",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-05-23T21:13:04.060Z"
+    },
+    {
+      "id": "bug-016",
+      "timestamp": "2026-05-23T21:12:03.679Z",
+      "error_message": "Missing guard clause",
+      "file": "script.js",
+      "root_cause": "No early return/throw for edge case: score >= 90",
+      "fix": "Added guard clause: if (score >= 90)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-23T21:12:03.679Z"
+    },
+    {
+      "id": "bug-017",
+      "timestamp": "2026-05-23T21:16:52.709Z",
+      "error_message": "Incorrect value in code",
+      "file": "script.js",
+      "root_cause": "Had 'profiel\\'",
+      "fix": "Changed to 'portfolio\\'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-05-23T21:17:11.276Z"
+    },
+    {
+      "id": "bug-018",
+      "timestamp": "2026-05-23T21:17:36.140Z",
+      "error_message": "Missing error handling in _dvPortfolioTab",
+      "file": "script.js",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-23T21:17:36.140Z"
     }
   ]
 }

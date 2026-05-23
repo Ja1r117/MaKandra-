@@ -702,111 +702,104 @@ function _renderProfile(w) {
   if (w.experience && w.experience !== w.category) skillsTags += '<span class="vaard-tag">' + esc(w.experience) + '</span>';
 
   el.innerHTML =
-    '<div class="prof-layout">' +
-      '<button class="profile-back" onclick="showView(\'browse\')">&#8592; Terug naar overzicht</button>' +
-      '<div class="prof-columns">' +
-
-        '<div class="prof-main">' +
-
-          // Header card
-          '<div class="prof-card prof-header-card">' +
-            '<div class="prof-avatar-col">' +
-              (w.profile_picture
-                ? '<img src="' + API + w.profile_picture + '" class="prof-avatar-img">'
-                : '<div class="prof-avatar-circle" style="background:' + avatarColor(w.name) + '">' + ini(w.name) + '</div>') +
+    // ── FULL-WIDTH GREEN HEADER ──
+    '<div class="profile-header-bg">' +
+      '<div class="profile-header-inner">' +
+        '<div class="profile-back" onclick="showView(\'browse\')">&#8592; Terug naar overzicht</div>' +
+        '<div class="profile-top">' +
+          '<div class="profile-avatar-lg" style="background:' + avatarColor(w.name) + '">' +
+            (w.profile_picture
+              ? '<img src="' + API + w.profile_picture + '" alt="">'
+              : ini(w.name)) +
+          '</div>' +
+          '<div class="profile-header-info">' +
+            '<h1>' + esc(w.name) + '</h1>' +
+            (w.bio ? '<div class="profile-tagline">' + esc(w.bio.slice(0,100)) + (w.bio.length > 100 ? '…' : '') + '</div>' : '') +
+            '<div class="profile-badges">' +
+              (w.category    ? '<span class="profile-badge">🏷️ ' + esc(w.category) + '</span>' : '') +
+              (w.buurt       ? '<span class="profile-badge">📍 ' + esc(w.buurt)    + '</span>' : '') +
+              (w.review_count ? '<span class="profile-badge">⭐ ' + w.review_count + ' beoordelingen</span>' : '') +
+              (w.working_hours ? '<span class="profile-badge">🕐 ' + esc(fmtSchedule(w.working_hours)) + '</span>' : '') +
               availBadge +
             '</div>' +
-            '<div class="prof-header-info">' +
-              '<h2 class="prof-name">' + esc(w.name) + '</h2>' +
-              (w.experience ? '<p class="prof-exp">' + esc(w.experience) + '</p>' : '') +
-              '<div class="prof-header-actions">' +
-                (canBook ? '<button class="btn-primary" onclick="openBookingModal(' + w.id + ',\'' + esc(w.name) + '\',\'' + esc(w.working_hours || '') + '\',' + (w.hourly_rate || 0) + ')">Boek nu</button>' : '') +
-                ((!currentUser || currentUser.role === 'klant')
-                  ? '<button class="btn-fav-profile' + (isFav ? ' active' : '') + '" onclick="toggleFav(' + w.id + ',this)">' + (isFav ? '&#10084; Favoriet' : '&#9825; Opslaan') + '</button>'
-                  : '') +
-              '</div>' +
+            '<div class="profile-action-btns">' +
+              (canBook ? '<button class="btn-primary" onclick="openBookingModal(' + w.id + ',\'' + esc(w.name) + '\',\'' + esc(w.working_hours || '') + '\',' + (w.hourly_rate || 0) + ')">Boek nu</button>' : '') +
+              ((!currentUser || currentUser.role === 'klant')
+                ? '<button class="btn-fav-profile' + (isFav ? ' active' : '') + '" onclick="toggleFav(' + w.id + ',this)">' + (isFav ? '&#10084; Favoriet' : '&#9825; Opslaan') + '</button>'
+                : '') +
             '</div>' +
           '</div>' +
-
-          // Over
-          '<div class="prof-card">' +
-            '<div class="prof-section-title">Over ' + esc(w.name.split(' ')[0]) + '</div>' +
-            '<p style="color:#555;line-height:1.75">' + esc(w.bio || 'Geen beschrijving beschikbaar.') + '</p>' +
-          '</div>' +
-
-          // Vertrouwensscore
-          '<div class="prof-card">' +
-            '<div class="prof-section-title">🥇 Vertrouwensscore</div>' +
-            '<div class="trust-stats">' +
-              '<div class="trust-stat-box"><div class="ts-icon">👥</div><div class="ts-num" id="ts-clients">—</div><div class="ts-label">Totale klanten</div></div>' +
-              '<div class="trust-stat-box"><div class="ts-icon">🔄</div><div class="ts-num" id="ts-returning">—</div><div class="ts-label">Terugkerende klanten</div></div>' +
-              '<div class="trust-stat-box"><div class="ts-icon">⭐</div><div class="ts-num">' + (w.review_count || '—') + '</div><div class="ts-label">Beoordelingen</div></div>' +
+          '<div class="profile-header-side">' +
+            '<div class="profile-score-big">' +
+              buildScoreLarge(scoreNum) +
             '</div>' +
-            '<div class="trust-bars">' +
-              '<div class="trust-bar-row"><span>Beoordelingen score</span><div class="trust-bar"><div class="trust-bar-fill" style="width:' + scoreNum + '%"></div></div><span>' + scoreNum + '%</span></div>' +
-              '<div class="trust-bar-row"><span>Terugkerende klanten</span><div class="trust-bar"><div class="trust-bar-fill tb-blue" id="tb-returning" style="width:0%"></div></div><span id="tbl-returning">—</span></div>' +
-            '</div>' +
-            (w.working_hours ? '<div class="trust-hours">🕒 Werktijden: ' + esc(fmtSchedule(w.working_hours)) + '</div>' : '') +
+            (currentUser ? '<button class="btn-contact" onclick="openChat(' + w.id + ',\'' + esc(w.name) + '\',\'' + esc(w.profile_picture || '') + '\')">💬 Stuur bericht</button>' : '') +
           '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
 
-          // Vaardigheden
-          '<div class="prof-card">' +
-            '<div class="prof-section-title">Vaardigheden</div>' +
-            '<div class="vaardigheden-tags">' + (skillsTags || '<em style="color:#aaa">Geen vaardigheden opgegeven.</em>') + '</div>' +
+    // ── BODY ──
+    '<div class="profile-body">' +
+      '<div class="profile-main-col">' +
+
+        '<div class="profile-section">' +
+          '<div class="profile-section-title">Over ' + esc(w.name.split(' ')[0]) + '</div>' +
+          '<p style="color:#555;line-height:1.75">' + esc(w.bio || 'Geen beschrijving beschikbaar.') + '</p>' +
+        '</div>' +
+
+        '<div class="profile-section">' +
+          '<div class="profile-section-title">🥇 Vertrouwensscore</div>' +
+          '<div class="trust-stats">' +
+            '<div class="trust-stat-box"><div class="ts-icon">👥</div><div class="ts-num" id="ts-clients">—</div><div class="ts-label">Totale klanten</div></div>' +
+            '<div class="trust-stat-box"><div class="ts-icon">🔄</div><div class="ts-num" id="ts-returning">—</div><div class="ts-label">Terugkerende klanten</div></div>' +
+            '<div class="trust-stat-box"><div class="ts-icon">⭐</div><div class="ts-num">' + (w.review_count || '—') + '</div><div class="ts-label">Beoordelingen</div></div>' +
           '</div>' +
+          '<div class="trust-bars">' +
+            '<div class="trust-bar-row"><span>Beoordelingen score</span><div class="trust-bar"><div class="trust-bar-fill" style="width:' + scoreNum + '%"></div></div><span>' + scoreNum + '%</span></div>' +
+            '<div class="trust-bar-row"><span>Terugkerende klanten</span><div class="trust-bar"><div class="trust-bar-fill tb-blue" id="tb-returning" style="width:0%"></div></div><span id="tbl-returning">—</span></div>' +
+          '</div>' +
+        '</div>' +
 
-          // Review button
+        '<div class="profile-section">' +
+          '<div class="profile-section-title">Vaardigheden</div>' +
+          '<div class="vaardigheden-tags">' + (skillsTags || '<em style="color:#aaa">Geen vaardigheden opgegeven.</em>') + '</div>' +
+        '</div>' +
+
+        '<div class="profile-section" id="pv-portfolio-card">' +
+          '<div class="profile-section-title">Portfolio</div>' +
+          '<div id="pv-portfolio-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px"><p style="color:#aaa;font-size:.82rem">Laden...</p></div>' +
+        '</div>' +
+
+        '<div class="profile-section">' +
+          '<div class="profile-section-title">Beoordelingen (' + (w.review_count || 0) + ')</div>' +
+          '<div id="reviews-list"><p style="color:#aaa">Laden...</p></div>' +
           (currentUser && currentUser.role === 'klant'
-            ? '<div class="prof-card"><div class="prof-section-title">Review plaatsen</div><button class="btn-contact" onclick="openReviewModal(' + w.id + ')">Review schrijven</button></div>'
+            ? '<button class="btn-add-review" onclick="openReviewModal(' + w.id + ')">✏️ Beoordeling schrijven</button>'
             : '') +
-
-          // Portfolio
-          '<div class="prof-card" id="pv-portfolio-card">' +
-            '<div class="prof-section-title">Portfolio</div>' +
-            '<div id="pv-portfolio-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px"><p style="color:#aaa;font-size:.82rem">Laden...</p></div>' +
-          '</div>' +
-
-          // Reviews list
-          '<div class="prof-card">' +
-            '<div class="prof-section-title">Beoordelingen (' + (w.review_count || 0) + ')</div>' +
-            '<div id="reviews-list"><p style="color:#aaa">Laden...</p></div>' +
-          '</div>' +
-
         '</div>' +
 
-        // RIGHT SIDEBAR
-        '<div class="prof-sidebar">' +
+      '</div>' +
 
-          // Dienst info
-          '<div class="prof-card">' +
-            '<div class="prof-section-title">Dienst info</div>' +
-            '<table class="dienst-info-table">' +
-              (w.buurt    ? '<tr><td>District</td><td class="di-val">'   + esc(w.buurt)    + '</td></tr>' : '') +
-              (w.category ? '<tr><td>Categorie</td><td class="di-val">'  + esc(w.category) + '</td></tr>' : '') +
-              '<tr><td>Klanten</td><td class="di-val" id="di-clients">—</td></tr>' +
-              '<tr><td>Terugkerende</td><td class="di-val" id="di-returning">—</td></tr>' +
-              '<tr><td>Beoordelingen</td><td class="di-val">' + (w.review_count || '—') + '</td></tr>' +
-              (w.avg_score ? '<tr><td>Score</td><td class="di-val di-green">' + scoreNum + '%</td></tr>' : '') +
-              (w.working_hours ? '<tr><td>Werktijden</td><td class="di-val">' + esc(fmtSchedule(w.working_hours)) + '</td></tr>' : '') +
-            '</table>' +
-            (w.hourly_rate
-              ? '<div class="dienst-price-box"><div class="dienst-price">SRD ' + w.hourly_rate + '/uur</div><div class="dienst-price-label">Indicatief tarief</div></div>'
-              : '') +
-          '</div>' +
-
-          // Contact
-          (w.email || w.phone
-            ? '<div class="prof-card">' +
-                '<div class="prof-section-title">Contact</div>' +
-                '<table class="dienst-info-table">' +
-                  (w.email ? '<tr><td>E-mail</td><td class="di-val" style="word-break:break-all;font-size:.8rem">' + esc(w.email) + '</td></tr>' : '') +
-                  (w.phone ? '<tr><td>Telefoon</td><td class="di-val">' + esc(w.phone) + '</td></tr>' : '') +
-                '</table>' +
-                (currentUser ? '<button class="btn-stuur-bericht" onclick="openChat(' + w.id + ',\'' + esc(w.name) + '\',\'' + esc(w.profile_picture || '') + '\')">💬 Stuur bericht</button>' : '') +
-              '</div>'
-            : '') +
-
+      '<div class="profile-side-col">' +
+        '<div class="sidebar-info-card">' +
+          '<h3>Dienst info</h3>' +
+          '<div class="info-row"><span>District</span><span>' + esc(w.buurt || '—') + '</span></div>' +
+          '<div class="info-row"><span>Categorie</span><span>' + esc(w.category || '—') + '</span></div>' +
+          '<div class="info-row"><span>Klanten</span><span id="di-clients">—</span></div>' +
+          '<div class="info-row"><span>Terugkerende</span><span id="di-returning">—</span></div>' +
+          '<div class="info-row"><span>Beoordelingen</span><span>' + (w.review_count || '—') + '</span></div>' +
+          (w.avg_score ? '<div class="info-row"><span>Score</span><span style="color:var(--primary);font-weight:700">' + scoreNum + '%</span></div>' : '') +
+          (w.hourly_rate ? '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)"><div style="font-size:1.4rem;font-weight:800;color:var(--primary)">SRD ' + w.hourly_rate + '/uur</div><div style="font-size:.75rem;color:#888">Indicatief tarief</div></div>' : '') +
         '</div>' +
+        (w.email || w.phone
+          ? '<div class="sidebar-info-card" style="margin-top:14px">' +
+              '<h3>Contact</h3>' +
+              (w.email ? '<div class="info-row"><span>E-mail</span><span style="word-break:break-all;font-size:.8rem">' + esc(w.email) + '</span></div>' : '') +
+              (w.phone ? '<div class="info-row"><span>Telefoon</span><span>' + esc(w.phone) + '</span></div>' : '') +
+              (currentUser ? '<button class="btn-stuur-bericht" onclick="openChat(' + w.id + ',\'' + esc(w.name) + '\',\'' + esc(w.profile_picture || '') + '\')">💬 Stuur bericht</button>' : '') +
+            '</div>'
+          : '') +
       '</div>' +
     '</div>';
 
@@ -822,17 +815,24 @@ async function _loadProviderPortfolio(providerId) {
   try {
     const r     = await fetch(API + '/portfolio/' + providerId);
     const items = await r.json();
-    const card  = document.getElementById('pv-portfolio-card');
-    if (!items.length) { if (card) card.style.display = 'none'; return; }
-    if (card) card.style.display = '';
+    if (!items.length) {
+      grid.className = 'portfolio-grid';
+      grid.innerHTML = '<div class="portfolio-empty">Geen portfolio-items beschikbaar.</div>';
+      return;
+    }
+    grid.className = 'portfolio-grid';
+    grid.style = '';
     grid.innerHTML = items.map(item =>
-      '<div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:#111;cursor:pointer" onclick="this.querySelector(\'video,img\').requestFullscreen?.()">' +
+      '<div class="portfolio-item" onclick="this.querySelector(\'video,img\')?.requestFullscreen?.()">' +
         (item.file_type === 'video'
-          ? '<video src="' + API + item.file_path + '" style="width:100%;height:100%;object-fit:cover" muted playsinline controls></video>'
-          : '<img src="' + API + item.file_path + '" style="width:100%;height:100%;object-fit:cover" loading="lazy">') +
+          ? '<video src="' + API + item.file_path + '" muted playsinline loop></video>'
+          : '<img src="' + API + item.file_path + '" loading="lazy" alt="Portfolio">') +
+        '<div class="portfolio-overlay">' + (item.file_type === 'video' ? '▶' : '🔍') + '</div>' +
       '</div>'
     ).join('');
-  } catch { /* silent */ }
+  } catch {
+    grid.innerHTML = '<p style="color:#aaa;font-size:.85rem">Fout bij laden portfolio.</p>';
+  }
 }
 
 async function _loadReviews(providerId) {
@@ -1141,15 +1141,27 @@ function openReviewModal(providerId) {
   document.getElementById('review-target-id').value = providerId;
   document.getElementById('review-text').value      = '';
   document.getElementById('review-error').textContent = '';
-  const slider = document.getElementById('review-rating');
-  if (slider) {
-    slider.value = 75;
-    slider.style.setProperty('--pct', '75%');
-    document.getElementById('review-pct-label').textContent = '75%';
-  }
   document.getElementById('review-overlay').classList.remove('hidden');
+  setTimeout(() => updateSliderScore(75), 30);
 }
 window.openReviewModal = openReviewModal;
+
+function updateSliderScore(val) {
+  val = parseInt(val);
+  const color = scoreColor(val);
+  const pct   = val + '%';
+  const slider  = document.getElementById('review-rating');
+  const numEl   = document.getElementById('review-pct-label');
+  const wrapEl  = document.getElementById('score-slider-wrap');
+  if (slider) {
+    slider.value = val;
+    slider.style.setProperty('--fill', color);
+    slider.style.setProperty('--pct',  pct);
+    slider.style.background = 'linear-gradient(to right, ' + color + ' ' + pct + ', rgba(0,0,0,0.1) ' + pct + ')';
+  }
+  if (numEl)  { numEl.textContent = val + '%'; numEl.style.color = color; }
+}
+window.updateSliderScore = updateSliderScore;
 
 function closeReviewModal(e) {
   if (!e || e.target === document.getElementById('review-overlay')) {
@@ -1227,13 +1239,14 @@ function renderDVDash(el) {
           '<div class="dash-menu-item" onclick="dvTab(\'opdrachten\',this)">Opdrachten</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'agenda\',this)">Agenda</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'notificaties\',this)">Notificaties</div>' +
+          '<div class="dash-menu-item" onclick="dvTab(\'portfolio\',this)">🖼️ Portfolio</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'profiel\',this)">Profiel bewerken</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'account\',this)">Account</div>' +
           (currentUser.is_admin ? '<div class="dash-menu-item" onclick="dvTab(\'admin\',this)">Beheer</div>' : '') +
         '</nav>' +
       '</aside>' +
       '<div class="dashboard-panel">' +
-        _dvOverzicht() + _dvBoekingen() + _dvOpdrachten() + _dvAgenda() + _dvNotifs() + _dvProfiel() + _dvAccount() + (currentUser.is_admin ? _dvAdminPanel() : '') +
+        _dvOverzicht() + _dvBoekingen() + _dvOpdrachten() + _dvAgenda() + _dvNotifs() + _dvPortfolioTab() + _dvProfiel() + _dvAccount() + (currentUser.is_admin ? _dvAdminPanel() : '') +
       '</div>' +
     '</div>';
 
@@ -1253,6 +1266,7 @@ function dvTab(panel, el) {
   if (panel === 'opdrachten')   loadDVOpdrachten();
   if (panel === 'agenda')       renderCalendar();
   if (panel === 'notificaties') loadDVNotifications();
+  if (panel === 'portfolio')    loadDVPortfolioTab();
   if (panel === 'profiel')      loadDVPortfolio();
   if (panel === 'admin')        loadAdminPanel();
 }
@@ -1321,6 +1335,94 @@ function _dvNotifs() {
     '<div id="dv-notif-list"><p>Laden...</p></div>' +
   '</div>';
 }
+
+// ─────────────────────────────────────────
+// PORTFOLIO TAB (dashboard)
+// ─────────────────────────────────────────
+
+const MAX_PORTFOLIO_SLOTS = 6;
+
+function _dvPortfolioTab() {
+  let slots = '';
+  for (let i = 0; i < MAX_PORTFOLIO_SLOTS; i++) {
+    slots += '<div class="portfolio-upload-item" id="dv-pslot-' + i + '" onclick="triggerPortfolioUpload(' + i + ')">' +
+      '<div class="upload-icon">＋</div>' +
+      '<div class="upload-text">Foto of video uploaden</div>' +
+    '</div>';
+  }
+  return '<div class="dash-panel hidden" id="dv-p-portfolio">' +
+    '<div class="dashboard-panel-title">🖼️ Portfolio</div>' +
+    '<p style="color:var(--text-muted);font-size:.875rem;margin-bottom:20px">Upload foto\'s en video\'s om uw werk te tonen aan potentiële klanten.</p>' +
+    '<div class="portfolio-upload-grid" id="dv-portfolio-upload-grid">' + slots + '</div>' +
+    '<p class="portfolio-hint">Ondersteunde formaten: JPG, PNG, GIF, MP4, MOV · Max. 50 MB per bestand</p>' +
+    '<input type="file" id="dv-portfolio-slot-input" accept="image/*,video/*" style="display:none" onchange="uploadPortfolioSlot(this)">' +
+  '</div>';
+}
+
+let _activeSlot = null;
+
+function triggerPortfolioUpload(slotIndex) {
+  _activeSlot = slotIndex;
+  const input = document.getElementById('dv-portfolio-slot-input');
+  if (input) input.click();
+}
+window.triggerPortfolioUpload = triggerPortfolioUpload;
+
+async function uploadPortfolioSlot(input) {
+  const file = input?.files?.[0];
+  if (!file) return;
+  const slot = document.getElementById('dv-pslot-' + _activeSlot);
+  if (slot) {
+    slot.innerHTML = '<div style="font-size:.8rem;color:#888">Uploaden...</div>';
+    slot.onclick = null;
+  }
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch(API + '/portfolio/' + currentUser.id, { method: 'POST', body: fd });
+    if (r.ok) { loadDVPortfolioTab(); showToast('Geüpload!', 'success'); }
+    else { showToast('Upload mislukt.', 'error'); loadDVPortfolioTab(); }
+  } catch { showToast('Verbindingsfout.', 'error'); loadDVPortfolioTab(); }
+  input.value = '';
+}
+window.uploadPortfolioSlot = uploadPortfolioSlot;
+
+async function loadDVPortfolioTab() {
+  const grid = document.getElementById('dv-portfolio-upload-grid');
+  if (!grid) return;
+  try {
+    const r = await fetch(API + '/portfolio/' + currentUser.id);
+    const items = await r.json();
+    let html = '';
+    for (let i = 0; i < MAX_PORTFOLIO_SLOTS; i++) {
+      const item = items[i];
+      if (item) {
+        html += '<div class="portfolio-upload-item filled" id="dv-pslot-' + i + '">' +
+          (item.file_type === 'video'
+            ? '<video src="' + API + item.file_path + '" muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>'
+            : '<img src="' + API + item.file_path + '" alt="Portfolio">') +
+          '<div class="portfolio-remove-btn" onclick="deleteDVPortfolioSlot(' + item.id + ')">✕</div>' +
+        '</div>';
+      } else {
+        html += '<div class="portfolio-upload-item" id="dv-pslot-' + i + '" onclick="triggerPortfolioUpload(' + i + ')">' +
+          '<div class="upload-icon">＋</div>' +
+          '<div class="upload-text">Foto of video uploaden</div>' +
+        '</div>';
+      }
+    }
+    grid.innerHTML = html;
+  } catch { /* silent */ }
+}
+window.loadDVPortfolioTab = loadDVPortfolioTab;
+
+async function deleteDVPortfolioSlot(itemId) {
+  try {
+    await fetch(API + '/portfolio/item/' + itemId, { method: 'DELETE' });
+    loadDVPortfolioTab();
+    showToast('Verwijderd.', 'info');
+  } catch { showToast('Fout bij verwijderen.', 'error'); }
+}
+window.deleteDVPortfolioSlot = deleteDVPortfolioSlot;
 
 function _dvProfiel() {
   return '<div class="dash-panel hidden" id="dv-p-profiel">' +
@@ -2565,20 +2667,41 @@ function injectDashCSS() {
     '.avail-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;vertical-align:middle}',
     '.avail-dot.busy{background:#ef4444}',
     // Profile page 2-column layout
-    '.prof-layout{max-width:1100px;margin:0 auto;padding:28px 16px}',
-    '.prof-columns{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start;margin-top:18px}',
-    '@media(max-width:900px){.prof-columns{grid-template-columns:1fr}}',
-    '.prof-card{background:#fff;border-radius:14px;padding:22px;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:14px}',
-    '.prof-header-card{display:flex;gap:18px;align-items:flex-start}',
-    '.prof-avatar-col{display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0}',
-    '.prof-avatar-img{width:84px;height:84px;border-radius:50%;object-fit:cover}',
-    '.prof-avatar-circle{width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.9rem;font-weight:700;color:#fff}',
-    '.prof-avail-badge{font-size:.72rem;padding:3px 10px;border-radius:20px;background:#dcfce7;color:#166534;font-weight:600;white-space:nowrap}',
-    '.prof-avail-badge.busy{background:#fee2e2;color:#991b1b}',
-    '.prof-header-info{flex:1}',
-    '.prof-name{margin:0 0 4px;font-size:1.35rem;font-weight:700}',
-    '.prof-exp{color:#666;font-size:.88rem;margin:0 0 12px}',
-    '.prof-header-actions{display:flex;gap:8px;flex-wrap:wrap}',
+    // Profile – v7.1 style
+    '.profile-header-bg{background:var(--primary);padding:48px 0 40px;position:relative;overflow:hidden}',
+    '.profile-header-bg::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 80% 50%,rgba(255,255,255,.08) 0,transparent 60%),repeating-linear-gradient(45deg,rgba(255,255,255,.02) 0,rgba(255,255,255,.02) 1px,transparent 1px,transparent 50px);pointer-events:none}',
+    '.profile-header-inner{max-width:1240px;margin:0 auto;padding:0 24px;position:relative}',
+    '.profile-back{display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,.65);font-size:.85rem;cursor:pointer;margin-bottom:24px;transition:color .2s}',
+    '.profile-back:hover{color:#fff}',
+    '.profile-top{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap}',
+    '.profile-avatar-lg{width:110px;height:110px;border-radius:50%;border:4px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:2.4rem;font-weight:700;color:#fff;overflow:hidden;flex-shrink:0;box-shadow:0 4px 20px rgba(0,0,0,.2)}',
+    '.profile-avatar-lg img{width:100%;height:100%;object-fit:cover}',
+    '.profile-header-info{flex:1;min-width:200px}',
+    '.profile-header-info h1{font-family:var(--font-display);font-size:2.2rem;font-weight:700;color:#fff;margin:0 0 6px;text-shadow:0 1px 6px rgba(0,0,0,.2)}',
+    '.profile-tagline{font-size:.95rem;color:rgba(255,255,255,.72);margin-bottom:14px}',
+    '.profile-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}',
+    '.profile-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 12px;border-radius:20px;font-size:.78rem;color:rgba(255,255,255,.9);backdrop-filter:blur(4px)}',
+    '.prof-avail-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);padding:4px 12px;border-radius:20px;font-size:.78rem;color:rgba(255,255,255,.9)}',
+    '.prof-avail-badge.busy{background:rgba(239,68,68,.25);border-color:rgba(239,68,68,.4)}',
+    '.profile-action-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}',
+    '.profile-header-side{text-align:right;flex-shrink:0;min-width:140px}',
+    '.profile-score-big{margin-bottom:14px}',
+    '.phs-num{font-size:2.8rem;font-weight:800;color:#fff;line-height:1}',
+    '.phs-label{font-size:.75rem;color:rgba(255,255,255,.6);margin-top:4px}',
+    '.profile-body{max-width:1240px;margin:0 auto;padding:40px 24px 80px;display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start}',
+    '@media(max-width:900px){.profile-body{grid-template-columns:1fr}.profile-side-col{order:-1}.profile-top{align-items:flex-start}}',
+    '.profile-main-col{}',
+    '.profile-side-col{}',
+    '.profile-section{background:#fff;border-radius:14px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:18px}',
+    '.profile-section-title{font-size:1rem;font-weight:700;margin-bottom:14px;color:var(--dark)}',
+    '.sidebar-info-card{background:#fff;border-radius:14px;padding:22px;box-shadow:0 2px 12px rgba(0,0,0,.06)}',
+    '.sidebar-info-card h3{font-size:1rem;font-weight:700;margin:0 0 16px;color:var(--dark)}',
+    '.info-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-light);font-size:.87rem}',
+    '.info-row:last-child{border-bottom:none}',
+    '.info-row>span:first-child{color:var(--text-muted)}',
+    '.info-row>span:last-child{font-weight:600;text-align:right}',
+    '.btn-add-review{margin-top:14px;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:.9rem;font-weight:600;cursor:pointer}',
+    '.btn-add-review:hover{background:var(--primary-h)}',
     '.prof-section-title{font-size:1rem;font-weight:700;margin-bottom:12px}',
     '.trust-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}',
     '.trust-stat-box{background:#f8f7ff;border-radius:10px;padding:12px;text-align:center}',
@@ -2594,7 +2717,35 @@ function injectDashCSS() {
     '.trust-bar-row>span:last-child{min-width:34px;text-align:right;font-weight:600;font-size:.8rem}',
     '.trust-hours{display:inline-flex;align-items:center;gap:6px;background:#f0fdf4;color:#166534;border-radius:20px;padding:5px 13px;font-size:.82rem}',
     '.vaardigheden-tags{display:flex;flex-wrap:wrap;gap:8px}',
-    '.vaard-tag{background:#f3f0ff;color:#6c47ff;border-radius:20px;padding:4px 13px;font-size:.82rem;font-weight:500}',
+    '.vaard-tag{padding:6px 14px;background:var(--green-light);color:var(--primary);border-radius:20px;font-size:.82rem;font-weight:600;border:1px solid rgba(27,67,50,.12)}',
+    // Portfolio grid (v7.1 style)
+    '.portfolio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}',
+    '@media(max-width:600px){.portfolio-grid{grid-template-columns:repeat(2,1fr)}}',
+    '.portfolio-item{aspect-ratio:4/3;border-radius:8px;overflow:hidden;background:#e5e7eb;position:relative;cursor:pointer}',
+    '.portfolio-item img,.portfolio-item video{width:100%;height:100%;object-fit:cover;transition:transform .3s}',
+    '.portfolio-item:hover img,.portfolio-item:hover video{transform:scale(1.07)}',
+    '.portfolio-overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;font-size:24px}',
+    '.portfolio-item:hover .portfolio-overlay{opacity:1}',
+    '.portfolio-empty{grid-column:1/-1;text-align:center;padding:40px;color:#aaa;font-size:.9rem}',
+    // Portfolio upload grid (dashboard)
+    '.portfolio-upload-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}',
+    '@media(max-width:600px){.portfolio-upload-grid{grid-template-columns:repeat(2,1fr)}}',
+    '.portfolio-upload-item{aspect-ratio:4/3;border-radius:10px;border:2px dashed var(--border);background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;position:relative;overflow:hidden;transition:border-color .2s,background .2s}',
+    '.portfolio-upload-item:hover{border-color:var(--primary);background:var(--green-light)}',
+    '.portfolio-upload-item.filled{border-style:solid;border-color:var(--border);cursor:default}',
+    '.portfolio-upload-item.filled img,.portfolio-upload-item.filled video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}',
+    '.portfolio-remove-btn{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;z-index:2}',
+    '.portfolio-upload-item.filled:hover .portfolio-remove-btn{opacity:1}',
+    '.upload-icon{font-size:1.6rem;color:var(--text-muted)}',
+    '.upload-text{font-size:.75rem;color:var(--text-muted);text-align:center;padding:0 8px}',
+    '.portfolio-hint{font-size:.75rem;color:var(--text-muted);margin-top:4px}',
+    // Score ring
+    '.score-ring{display:block;flex-shrink:0}',
+    '.score-ring-arc{transition:stroke-dasharray 1s cubic-bezier(.4,0,.2,1)}',
+    '.score-large-wrap{display:flex;align-items:center;gap:14px}',
+    '.score-large-info{display:flex;flex-direction:column}',
+    '.score-large-pct{font-size:2rem;font-weight:800;line-height:1;color:#fff}',
+    '.score-large-label{font-size:.75rem;color:rgba(255,255,255,.6);margin-top:4px}',
     '.dienst-info-table{width:100%;border-collapse:collapse}',
     '.dienst-info-table td{padding:7px 0;border-bottom:1px solid #f3f3f3;font-size:.87rem;vertical-align:middle}',
     '.dienst-info-table td:first-child{color:#888}',
@@ -2608,6 +2759,15 @@ function injectDashCSS() {
     '.review-item{padding:13px 0;border-bottom:1px solid #f3f3f3}',
     '.review-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}',
     '.review-score{color:#f59e0b;font-size:1rem;letter-spacing:1px}',
+    // Score slider (v7.1 style)
+    '.score-slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;cursor:pointer;outline:none;transition:height .15s;background:linear-gradient(to right,var(--primary) 75%,rgba(0,0,0,0.1) 75%)}',
+    '.score-slider:hover{height:8px}',
+    '.score-slider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--fill,var(--primary));border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:grab;transition:transform .15s,box-shadow .15s}',
+    '.score-slider::-webkit-slider-thumb:active{cursor:grabbing;transform:scale(1.15);box-shadow:0 4px 16px rgba(0,0,0,.3)}',
+    '.score-slider::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--fill,var(--primary));border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:grab}',
+    '.score-slider-display{display:flex;align-items:center;gap:3px;height:56px;margin-top:4px}',
+    '.score-slider-num{font-family:var(--font-display);font-size:42px;font-weight:900;line-height:1;letter-spacing:-1.5px;transition:color .2s}',
+    '.score-slider-pct{font-size:18px;font-weight:700;opacity:.7}',
     // Star rating picker
     '.star-rating{display:flex;gap:6px;margin:6px 0 2px;cursor:pointer}',
     '.star{font-size:2rem;color:#d5d0c8;transition:color .1s;user-select:none;line-height:1}',
@@ -2854,6 +3014,41 @@ function esc(s) {
   return String(s || '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ─── Score ring helpers (v7.1 style) ──────────────────────────────────────────
+function scoreColor(score) {
+  if (score >= 90) return '#16a34a';
+  if (score >= 75) return '#65a30d';
+  if (score >= 60) return '#ea580c';
+  return '#dc2626';
+}
+
+function buildScoreRing(score, size = 56, stroke = 5) {
+  const r = (size / 2) - stroke;
+  const circ = 2 * Math.PI * r;
+  const dash = (score / 100) * circ;
+  const color = scoreColor(score);
+  return '<svg class="score-ring" width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '">' +
+    '<circle cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + r + '" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="' + stroke + '"/>' +
+    '<circle class="score-ring-arc" cx="' + (size/2) + '" cy="' + (size/2) + '" r="' + r + '" fill="none"' +
+    ' stroke="' + color + '" stroke-width="' + stroke + '" stroke-linecap="round"' +
+    ' stroke-dasharray="' + dash + ' ' + circ + '" stroke-dashoffset="0"' +
+    ' transform="rotate(-90 ' + (size/2) + ' ' + (size/2) + ')"' +
+    ' data-full="' + circ + '" data-dash="' + dash + '"/>' +
+    '</svg>';
+}
+
+function buildScoreLarge(score) {
+  if (!score) return '<div class="score-large-wrap"><div class="score-large-info"><span class="score-large-pct" style="color:#aaa">—</span><span class="score-large-label">Geen score</span></div></div>';
+  const color = scoreColor(score);
+  const label = score >= 95 ? 'Uitzonderlijk' : score >= 85 ? 'Uitstekend' : score >= 75 ? 'Zeer goed' : score >= 65 ? 'Goed' : 'Gemiddeld';
+  return '<div class="score-large-wrap">' +
+    buildScoreRing(score, 88, 7) +
+    '<div class="score-large-info">' +
+    '<span class="score-large-pct" style="color:' + color + '">' + score + '%</span>' +
+    '<span class="score-large-label">' + label + '</span>' +
+    '</div></div>';
 }
 
 // ─── Schedule picker helpers ───────────────────────────────────────────────

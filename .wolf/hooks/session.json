@@ -1,51 +1,18 @@
 {
-  "session_id": "session-2026-05-23-1734",
-  "started": "2026-05-23T20:34:39.198Z",
+  "session_id": "session-2026-05-23-1820",
+  "started": "2026-05-23T21:20:17.149Z",
   "files_read": {
-    "c:/Users/Sharief/Downloads/MaKandra-/index.html": {
-      "count": 2,
-      "tokens": 8112,
-      "first_read": "2026-05-23T20:43:00.774Z"
-    },
-    "c:/Users/Sharief/Downloads/MaKandra-/style.css": {
-      "count": 2,
-      "tokens": 17338,
-      "first_read": "2026-05-23T20:43:01.369Z"
+    "c:/Users/Sharief/Downloads/MaKandra-/.wolf/anatomy.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-23T21:22:13.421Z"
     }
   },
-  "files_written": [
-    {
-      "file": "c:/Users/Sharief/Downloads/MaKandra-/index.html",
-      "action": "edit",
-      "tokens": 22,
-      "at": "2026-05-23T20:44:48.492Z"
-    },
-    {
-      "file": "c:/Users/Sharief/Downloads/MaKandra-/index.html",
-      "action": "edit",
-      "tokens": 26,
-      "at": "2026-05-23T20:44:52.632Z"
-    },
-    {
-      "file": "c:/Users/Sharief/Downloads/MaKandra-/style.css",
-      "action": "edit",
-      "tokens": 15,
-      "at": "2026-05-23T20:44:57.973Z"
-    },
-    {
-      "file": "c:/Users/Sharief/Downloads/MaKandra-/style.css",
-      "action": "edit",
-      "tokens": 246,
-      "at": "2026-05-23T20:45:02.451Z"
-    }
-  ],
-  "edit_counts": {
-    "index.html": 2,
-    "style.css": 2
-  },
-  "anatomy_hits": 2,
-  "anatomy_misses": 0,
-  "repeated_reads_warned": 2,
+  "files_written": [],
+  "edit_counts": {},
+  "anatomy_hits": 0,
+  "anatomy_misses": 1,
+  "repeated_reads_warned": 0,
   "cerebrum_warnings": 0,
   "stop_count": 1
 }

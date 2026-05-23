@@ -1,17 +1,21 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-23T20:45:02.437Z
-> Files: 22 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-23T21:17:51.277Z
+> Files: 23 tracked | Anatomy hits: 0 | Misses: 0
+
+## ../
+
+- `index (1).html` — MaKandra – Vind Diensten in Suriname (~6957 tok)
 
 ## ./
 
 - `.gitignore` — Git ignore rules (~14 tok)
 - `claude.md` — OpenWolf (~57 tok)
-- `index.html` — MaKandra – Vind Diensten in Suriname (~8125 tok)
+- `index.html` — MaKandra – Vind Diensten in Suriname (~8068 tok)
 - `index(1).html` — MaKandra – Vind Diensten in Suriname (~7532 tok)
 - `package-lock.json` — npm lock file (~26 tok)
 - `README.md` — Project documentation (~61 tok)
-- `script.js` — MaKandra — script.js  (API-connected) (~43810 tok)
+- `script.js` — MaKandra — script.js  (API-connected) (~47656 tok)
 - `style.css` — Styles: 66 rules, 25 vars (~17701 tok)
 
 ## .claude/

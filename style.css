@@ -5,20 +5,20 @@
 
 /* ── Variables ────────────────────────── */
 :root {
-  --bg:            #FFF4EA;
-  --surface:       #FFF8F2;
-  --dark:          #3C1F0D;
-  --primary:       #B36731;
-  --primary-h:     #98541F;
-  --accent:        #EAA55D;
-  --accent-h:      #C78534;
-  --accent-light:  #FFF1DE;
-  --green-light:   #FFF2E3;
-  --text:          #42270F;
-  --text-muted:    #7A5B44;
-  --text-light:    #A68570;
-  --border:        #E6D7C8;
-  --border-light:  #F3E8DF;
+  --bg:            #F5F1EB;
+  --surface:       #FFFFFF;
+  --dark:          #0D1A10;
+  --primary:       #1B4332;
+  --primary-h:     #255E46;
+  --accent:        #C8883A;
+  --accent-h:      #B0741E;
+  --accent-light:  #FDF3E3;
+  --green-light:   #E8F5EE;
+  --text:          #18251B;
+  --text-muted:    #5E7267;
+  --text-light:    #97A89E;
+  --border:        #DDD9D1;
+  --border-light:  #EDEAE4;
   --shadow-sm:     0 1px 4px rgba(0,0,0,.07);
   --shadow-md:     0 4px 20px rgba(0,0,0,.10);
   --shadow-lg:     0 12px 48px rgba(0,0,0,.14);
