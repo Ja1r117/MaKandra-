@@ -354,6 +354,8 @@ window.logout = logout;
 // VIEWS
 // ─────────────────────────────────────────
 
+let profileBackView = 'home'; // tracks which view opened a profile, for the back button
+
 function showView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   const target = document.getElementById('view-' + name);
@@ -673,6 +675,10 @@ function renderFavoritesView() {
 // ─────────────────────────────────────────
 
 function showProviderProfile(id) {
+  // remember which view we came from so the back button goes to the right place
+  const active = document.querySelector('.view.active');
+  profileBackView = active ? (active.id.replace('view-', '') || 'home') : 'home';
+
   const w = allWorkers.find(x => x.id === id);
   if (!w) {
     fetch(API + '/dienstverleners')
@@ -705,7 +711,7 @@ function _renderProfile(w) {
     // ── FULL-WIDTH GREEN HEADER ──
     '<div class="profile-header-bg">' +
       '<div class="profile-header-inner">' +
-        '<div class="profile-back" onclick="showView(\'browse\')">&#8592; Terug naar overzicht</div>' +
+        '<div class="profile-back" onclick="showView(\'' + profileBackView + '\')">&#8592; Terug naar overzicht</div>' +
         '<div class="profile-top">' +
           '<div class="profile-avatar-lg" style="background:' + avatarColor(w.name) + '">' +
             (w.profile_picture
