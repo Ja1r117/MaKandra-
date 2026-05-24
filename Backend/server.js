@@ -3,12 +3,20 @@ import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { fileURLToPath } from 'url';
 import { db } from './config/db.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// ── Ensure uploads directory exists ──────────────────────────────────────────
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('Created uploads directory:', uploadsDir);
+}
 
 const app = express();
 app.use(cors());
@@ -1008,6 +1016,41 @@ app.get('/job-responses/:jobId', async (req, res) => {
 
 (async () => {
   try {
+    // ── Core tables that bookings / reviews / notifications depend on ──
+    await db.query(`CREATE TABLE IF NOT EXISTS bookings (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      klant_id INT NOT NULL,
+      dienstverlener_id INT NOT NULL,
+      date DATE NOT NULL,
+      time TIME NULL,
+      duration_minutes INT NOT NULL DEFAULT 60,
+      message TEXT NULL,
+      status ENUM('pending','accepted','declined','cancelled') NOT NULL DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_bk_dv   (dienstverlener_id),
+      INDEX idx_bk_klant (klant_id)
+    )`);
+
+    await db.query(`CREATE TABLE IF NOT EXISTS reviews (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      reviewer_id INT NOT NULL,
+      provider_id INT NOT NULL,
+      score INT NOT NULL,
+      text TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_rv_provider (provider_id),
+      INDEX idx_rv_reviewer (reviewer_id)
+    )`);
+
+    await db.query(`CREATE TABLE IF NOT EXISTS notifications (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      message TEXT NOT NULL,
+      is_read TINYINT(1) NOT NULL DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_notif_user (user_id)
+    )`);
+
     await db.query(`CREATE TABLE IF NOT EXISTS portfolio (
       id INT AUTO_INCREMENT PRIMARY KEY,
       user_id INT NOT NULL,

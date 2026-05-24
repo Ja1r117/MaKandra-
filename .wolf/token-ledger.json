@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-05-14T10:38:24.925Z",
   "lifetime": {
-    "total_tokens_estimated": 1006047,
-    "total_reads": 63,
-    "total_writes": 162,
+    "total_tokens_estimated": 1068685,
+    "total_reads": 70,
+    "total_writes": 168,
     "total_sessions": 29,
     "anatomy_hits": 31,
-    "anatomy_misses": 32,
-    "repeated_reads_blocked": 81,
-    "estimated_savings_vs_bare_cli": 2795635
+    "anatomy_misses": 39,
+    "repeated_reads_blocked": 90,
+    "estimated_savings_vs_bare_cli": 2965259
   },
   "sessions": [
     {
@@ -1616,6 +1616,95 @@
         "writes_count": 3,
         "repeated_reads_blocked": 1,
         "anatomy_lookups": 1
+      }
+    },
+    {
+      "id": "session-2026-05-24-0802",
+      "started": "2026-05-24T11:02:20.006Z",
+      "ended": "2026-05-24T11:34:55.497Z",
+      "reads": [
+        {
+          "file": "c:/MaKandra-/.wolf/anatomy.md",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "c:/MaKandra-/.wolf/cerebrum.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "c:/MaKandra-/backend/server.js",
+          "tokens_estimated": 13142,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "c:/MaKandra-/backend/config/db.js",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "c:/MaKandra-/script.js",
+          "tokens_estimated": 47780,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "c:/MaKandra-/.wolf/buglog.json",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "c:/MaKandra-/.wolf/memory.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "c:/MaKandra-/script.js",
+          "tokens_estimated": 28,
+          "action": "edit"
+        },
+        {
+          "file": "c:/MaKandra-/backend/server.js",
+          "tokens_estimated": 184,
+          "action": "edit"
+        },
+        {
+          "file": "c:/MaKandra-/backend/server.js",
+          "tokens_estimated": 462,
+          "action": "edit"
+        },
+        {
+          "file": "c:/MaKandra-/script.js",
+          "tokens_estimated": 128,
+          "action": "edit"
+        },
+        {
+          "file": "c:/MaKandra-/script.js",
+          "tokens_estimated": 383,
+          "action": "edit"
+        },
+        {
+          "file": "c:/MaKandra-/backend/migrations/001_create_missing_tables.sql",
+          "tokens_estimated": 531,
+          "action": "create"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 60922,
+        "output_tokens_estimated": 1716,
+        "reads_count": 7,
+        "writes_count": 6,
+        "repeated_reads_blocked": 9,
+        "anatomy_lookups": 0
       }
     }
   ],

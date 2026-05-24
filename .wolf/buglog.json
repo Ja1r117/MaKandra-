@@ -304,6 +304,70 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-23T21:28:41.402Z"
+    },
+    {
+      "id": "bug-020",
+      "timestamp": "2026-05-24T11:24:05.727Z",
+      "error_message": "Significant refactor of ",
+      "file": "script.js",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 23→38 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "js"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-24T11:24:05.727Z"
+    },
+    {
+      "id": "bug-021",
+      "timestamp": "2026-05-24T00:00:00.000Z",
+      "error_message": "Users remain on signup page after registration; 'Email already in use' shown even though account was created",
+      "file": "script.js",
+      "root_cause": "All three auth-form buttons had both onclick= HTML attribute AND a duplicate addEventListener call in DOMContentLoaded. Every click fired handleSignup()/handleLogin()/handleProviderSignup() TWICE simultaneously. First call inserted the user (201 OK); second call hit ER_DUP_ENTRY and returned 400 'Dit e-mailadres is al in gebruik'.",
+      "fix": "Removed lines 42-44 from script.js (addEventListener for #tab-login, #tab-signup, #tab-provider .btn-primary). The inline onclick= attributes in index.html are sufficient.",
+      "tags": ["signup", "double-submission", "event-listener", "duplicate-fetch"],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-24T00:00:00.000Z"
+    },
+    {
+      "id": "bug-022",
+      "timestamp": "2026-05-24T00:00:00.000Z",
+      "error_message": "Table 'makandra.bookings' doesn't exist",
+      "file": "backend/server.js",
+      "root_cause": "The DB init block in server.js created portfolio, messages, jobs, job_responses but omitted bookings, reviews, and notifications. Any query against those tables caused ER_NO_SUCH_TABLE at runtime.",
+      "fix": "Added CREATE TABLE IF NOT EXISTS for bookings, reviews, and notifications (with proper indexes) at the top of the DB init block — before portfolio and messages so dependencies are always satisfied. Also created backend/migrations/001_create_missing_tables.sql for manual runs.",
+      "tags": ["database", "missing-table", "bookings", "reviews", "notifications", "migration"],
+      "related_bugs": ["bug-023"],
+      "occurrences": 1,
+      "last_seen": "2026-05-24T00:00:00.000Z"
+    },
+    {
+      "id": "bug-023",
+      "timestamp": "2026-05-24T00:00:00.000Z",
+      "error_message": "Users unable to submit reviews; no error message displayed",
+      "file": "script.js",
+      "root_cause": "Two problems: (1) reviews table did not exist so INSERT returned 500. (2) submitReview() set errEl.textContent but never removed the 'hidden' CSS class, so no error was ever visible to the user.",
+      "fix": "Added reviews table to DB init (see bug-022). In submitReview(), added errEl.classList.remove('hidden') at the start and errEl.classList.add('hidden') on the success path. In openReviewModal(), added errEl.classList.add('hidden') to reset state when modal opens.",
+      "tags": ["reviews", "form-error", "hidden-class", "submit"],
+      "related_bugs": ["bug-022"],
+      "occurrences": 1,
+      "last_seen": "2026-05-24T00:00:00.000Z"
+    },
+    {
+      "id": "bug-024",
+      "timestamp": "2026-05-24T00:00:00.000Z",
+      "error_message": "Error: ENOENT: no such file or directory, open 'C:\\MaKandra-\\backend\\uploads\\avatar-76.jpg'",
+      "file": "backend/server.js",
+      "root_cause": "The backend/uploads/ directory was never created. Multer tried to write avatar files into a non-existent directory and crashed with ENOENT.",
+      "fix": "Added import fs from 'fs' and fs.mkdirSync(uploadsDir, { recursive: true }) immediately after __dirname is defined. The directory is now auto-created on every server start if missing. Both avatar and portfolio uploads use the same directory.",
+      "tags": ["uploads", "multer", "ENOENT", "missing-directory", "profile-picture"],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-24T00:00:00.000Z"
     }
   ]
 }

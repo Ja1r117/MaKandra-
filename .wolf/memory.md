@@ -251,3 +251,11 @@
 
 | Time | Action | File(s) | Outcome | ~Tokens |
 |------|--------|---------|---------|--------|
+| 08:22 | Edited script.js | 5→1 lines | ~28 |
+| 08:22 | Edited backend/server.js | added 1 condition(s) | ~184 |
+| 08:23 | Edited backend/server.js | expanded (+35 lines) | ~462 |
+| 08:23 | Edited script.js | modified openReviewModal() | ~128 |
+| 08:24 | Edited script.js | modified submitReview() | ~383 |
+| 08:24 | Created backend/migrations/001_create_missing_tables.sql | — | ~495 |
+| 00:00 | Fixed 4 HIGH-PRIORITY bugs: signup double-submit, missing bookings/reviews/notifications tables, review error visibility, uploads dir ENOENT | script.js, backend/server.js, backend/migrations/001_create_missing_tables.sql | all fixed | ~3200 |
+| 08:34 | Session end: 6 writes across 3 files (script.js, server.js, 001_create_missing_tables.sql) | 7 reads | ~62638 tok |

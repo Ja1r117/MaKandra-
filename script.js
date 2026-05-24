@@ -39,11 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('tab-btn-signup')?.addEventListener('click', () => switchAuthTab('signup'));
   document.getElementById('tab-btn-provider')?.addEventListener('click', () => switchAuthTab('provider'));
 
-  document.querySelector('#tab-login .btn-primary')?.addEventListener('click', handleLogin);
-  document.querySelector('#tab-signup .btn-primary')?.addEventListener('click', handleSignup);
-  document.querySelector('#tab-provider .btn-primary')?.addEventListener('click', handleProviderSignup);
-
-  // nav-auth buttons have their own inline onclick — no extra listener needed
+  // All auth form buttons already have inline onclick= in HTML — no extra listeners needed here.
 
   // Password strength indicators
   ['su-password', 'pv-password'].forEach(id => {
@@ -1146,7 +1142,9 @@ function openReviewModal(providerId) {
   if (!currentUser) { openAuthModal('login'); return; }
   document.getElementById('review-target-id').value = providerId;
   document.getElementById('review-text').value      = '';
-  document.getElementById('review-error').textContent = '';
+  const re = document.getElementById('review-error');
+  re.textContent = '';
+  re.classList.add('hidden');
   document.getElementById('review-overlay').classList.remove('hidden');
   setTimeout(() => updateSliderScore(75), 30);
 }
@@ -1179,12 +1177,20 @@ async function submitReview() {
   if (submitReview._running) return;
   submitReview._running = true;
   setTimeout(() => { submitReview._running = false; }, 2000);
+
   const targetId = document.getElementById('review-target-id').value;
   const score    = document.getElementById('review-rating').value;
   const text     = document.getElementById('review-text').value.trim();
   const errEl    = document.getElementById('review-error');
+  // Reset error state — make the div visible so any error message can be seen
+  errEl.textContent = '';
+  errEl.classList.remove('hidden');
 
-  if (!text) { errEl.textContent = 'Schrijf een review.'; return; }
+  if (!text) {
+    errEl.textContent = 'Schrijf een review.';
+    submitReview._running = false;
+    return;
+  }
 
   try {
     const r = await fetch(API + '/reviews', {
@@ -1192,10 +1198,17 @@ async function submitReview() {
       body: JSON.stringify({ reviewer_id: currentUser.id, provider_id: parseInt(targetId), score: parseInt(score), text }),
     });
     const data = await r.json();
-    if (!r.ok) { errEl.textContent = data.error; return; }
+    if (!r.ok) {
+      errEl.textContent = data.error;
+      submitReview._running = false;
+      return;
+    }
+    errEl.classList.add('hidden');
     document.getElementById('review-overlay').classList.add('hidden');
     showToast('Review geplaatst!', 'success');
-  } catch { errEl.textContent = 'Verbindingsfout.'; }
+  } catch {
+    errEl.textContent = 'Verbindingsfout. Controleer of de server actief is.';
+  }
   submitReview._running = false;
 }
 window.submitReview = submitReview;

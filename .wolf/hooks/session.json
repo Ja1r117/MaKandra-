@@ -1,12 +1,89 @@
 {
   "session_id": "session-2026-05-24-0802",
   "started": "2026-05-24T11:02:20.006Z",
-  "files_read": {},
-  "files_written": [],
-  "edit_counts": {},
+  "files_read": {
+    "c:/MaKandra-/.wolf/anatomy.md": {
+      "count": 2,
+      "tokens": 0,
+      "first_read": "2026-05-24T11:15:09.428Z"
+    },
+    "c:/MaKandra-/.wolf/cerebrum.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-24T11:15:09.879Z"
+    },
+    "c:/MaKandra-/backend/server.js": {
+      "count": 3,
+      "tokens": 13142,
+      "first_read": "2026-05-24T11:15:19.492Z"
+    },
+    "c:/MaKandra-/backend/config/db.js": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-24T11:15:19.597Z"
+    },
+    "c:/MaKandra-/script.js": {
+      "count": 4,
+      "tokens": 47780,
+      "first_read": "2026-05-24T11:15:49.984Z"
+    },
+    "c:/MaKandra-/.wolf/buglog.json": {
+      "count": 4,
+      "tokens": 0,
+      "first_read": "2026-05-24T11:15:50.356Z"
+    },
+    "c:/MaKandra-/.wolf/memory.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-24T11:28:36.885Z"
+    }
+  },
+  "files_written": [
+    {
+      "file": "c:/MaKandra-/script.js",
+      "action": "edit",
+      "tokens": 28,
+      "at": "2026-05-24T11:22:15.226Z"
+    },
+    {
+      "file": "c:/MaKandra-/backend/server.js",
+      "action": "edit",
+      "tokens": 184,
+      "at": "2026-05-24T11:22:49.320Z"
+    },
+    {
+      "file": "c:/MaKandra-/backend/server.js",
+      "action": "edit",
+      "tokens": 462,
+      "at": "2026-05-24T11:23:14.459Z"
+    },
+    {
+      "file": "c:/MaKandra-/script.js",
+      "action": "edit",
+      "tokens": 128,
+      "at": "2026-05-24T11:23:44.483Z"
+    },
+    {
+      "file": "c:/MaKandra-/script.js",
+      "action": "edit",
+      "tokens": 383,
+      "at": "2026-05-24T11:24:05.715Z"
+    },
+    {
+      "file": "c:/MaKandra-/backend/migrations/001_create_missing_tables.sql",
+      "action": "create",
+      "tokens": 531,
+      "at": "2026-05-24T11:24:47.930Z"
+    }
+  ],
+  "edit_counts": {
+    "script.js": 3,
+    "backend/server.js": 2,
+    "backend/migrations/001_create_missing_tables.sql": 1
+  },
   "anatomy_hits": 0,
-  "anatomy_misses": 0,
-  "repeated_reads_warned": 0,
+  "anatomy_misses": 7,
+  "repeated_reads_warned": 9,
   "cerebrum_warnings": 0,
-  "stop_count": 0
+  "stop_count": 1
 }
