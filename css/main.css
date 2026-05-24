@@ -481,7 +481,7 @@ img { max-width: 100%; display: block; }
   position: relative;
   padding: 100px 0;
   overflow: hidden;
-  background-image: url('images/background.jpeg');
+  background-image: url('../img/background.jpeg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -570,18 +570,18 @@ img { max-width: 100%; display: block; }
 
 
 /* Specifieke afbeeldingen per categorie */
-.card-schilders { background-image: url('images/schilder.jpg'); }
-.card-elektriciens { background-image: url('images/elektriciens.jpg'); }
-.card-hoveniers { background-image: url('images/hoveniers.jpg'); }
-.card-bank-mattenreiniging { background-image: url('images/mattenreiniging.jpg'); }
-.card-fotografie { background-image: url('images/fotografie.jpg'); }
-.card-video-animatie { background-image: url('images/video.jpg'); }
-.card-muziek-audio { background-image: url('images/muziek.jpg'); }
-.card-coaching-training { background-image: url('images/coaching.jpg'); }
-.card-schoonheid-wellness { background-image: url('images/schoonheid.jpg'); }
-.card-evenementen { background-image: url('images/evenementen.jpg'); }
-.card-grafisch-ontwerp { background-image: url('images/grafisch.jpg'); }
-.card-bouw-constructie { background-image: url('images/bouw.jpg'); }
+.card-schilders { background-image: url('../img/schilder.jpg'); }
+.card-elektriciens { background-image: url('../img/elektriciens.jpg'); }
+.card-hoveniers { background-image: url('../img/hoveniers.jpg'); }
+.card-bank-mattenreiniging { background-image: url('../img/mattenreiniging.jpg'); }
+.card-fotografie { background-image: url('../img/fotografie.jpg'); }
+.card-video-animatie { background-image: url('../img/video.jpg'); }
+.card-muziek-audio { background-image: url('../img/muziek.jpg'); }
+.card-coaching-training { background-image: url('../img/coaching.jpg'); }
+.card-schoonheid-wellness { background-image: url('../img/schoonheid.jpg'); }
+.card-evenementen { background-image: url('../img/evenementen.jpg'); }
+.card-grafisch-ontwerp { background-image: url('../img/grafisch.jpg'); }
+.card-bouw-constructie { background-image: url('../img/bouw.jpg'); }
 
 /* Overlay om tekst leesbaar te maken */
 .cat-card::before {
