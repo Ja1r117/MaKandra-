@@ -275,11 +275,20 @@ async function handleProviderSignup() {
 // NAV / SESSION
 // ─────────────────────────────────────────
 
+function setNavAvatar() {
+  const av = document.getElementById('nav-avatar');
+  if (!av) return;
+  if (currentUser.profile_picture) {
+    av.outerHTML = '<img id="nav-avatar" src="' + API + currentUser.profile_picture + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover">';
+  } else {
+    av.textContent = ini(currentUser.name);
+  }
+}
+
 function afterLogin() {
   document.getElementById('nav-auth')?.classList.add('hidden');
   document.getElementById('nav-user')?.classList.remove('hidden');
-  const av = document.getElementById('nav-avatar');
-  if (av) av.textContent = ini(currentUser.name);
+  setNavAvatar();
   const un = document.getElementById('nav-username');
   if (un) un.textContent = currentUser.name;
 
@@ -287,6 +296,12 @@ function afterLogin() {
   document.querySelectorAll('.klant-only').forEach(el => {
     el.style.display = isDV ? 'none' : '';
   });
+
+  // Category clicks are blocked for dienstverleners via the browseByCategory() guard
+
+  // Hide the hero search bar for dienstverleners
+  const heroSearch = document.getElementById('hero-search-box');
+  if (heroSearch) heroSearch.style.display = isDV ? 'none' : '';
 
   // Add "Mijn Profiel" link for dienstverleners
   const dropdown = document.getElementById('user-dropdown');
@@ -341,6 +356,9 @@ function logout() {
   document.getElementById('nav-auth')?.classList.remove('hidden');
   document.getElementById('nav-user')?.classList.add('hidden');
   document.getElementById('user-dropdown')?.classList.add('hidden');
+  // Re-enable hero search for logged-out visitors
+  const heroSearch = document.getElementById('hero-search-box');
+  if (heroSearch) heroSearch.style.display = '';
   showView('home');
   showToast('Uitgelogd.', 'info');
 }
@@ -350,12 +368,21 @@ window.logout = logout;
 // VIEWS
 // ─────────────────────────────────────────
 
-let profileBackView = 'home'; // tracks which view opened a profile, for the back button
+let profileBackView  = 'home'; // tracks which view opened a profile, for the back button
+const savedScrollPos = {};    // stores scroll position per view before leaving
 
 function showView(name) {
+  // Save scroll position of the current view before leaving
+  const current = document.querySelector('.view.active');
+  if (current) savedScrollPos[current.id.replace('view-', '')] = window.scrollY;
+
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   const target = document.getElementById('view-' + name);
-  if (target) { target.classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  if (target) target.classList.add('active');
+
+  // Restore saved scroll position, or go to top for fresh views
+  const restoreY = savedScrollPos[name] ?? 0;
+  window.scrollTo({ top: restoreY, behavior: restoreY > 0 ? 'instant' : 'smooth' });
 
   if (name === 'browse')    loadWorkers();
   if (name === 'favorites') renderFavoritesView();
@@ -441,7 +468,6 @@ function renderCategoryGrid(cats) {
       '<div class="cat-icon">' + icon + '</div>' +
       '<div class="cat-name">' + esc(c.name) + '</div>' +
       '<div class="cat-count">' + c.provider_count + ' dienstverlener' + (c.provider_count !== 1 ? 's' : '') + '</div>' +
-      (c.job_count > 0 ? '<div class="cat-jobs-badge">💼 ' + c.job_count + ' opdracht' + (c.job_count !== 1 ? 'en' : '') + '</div>' : '') +
     '</div>';
   }).join('');
 }
@@ -524,7 +550,12 @@ function resetFilters() {
 window.resetFilters = resetFilters;
 
 function browseByCategory(cat) {
+  if (currentUser && currentUser.role === 'dienstverlener') return;
   activeCat = cat;
+  const bs = document.getElementById('browse-search');
+  if (bs) bs.value = '';
+  const dist = document.getElementById('filter-district');
+  if (dist) dist.value = '';
   showView('browse');
 }
 window.browseByCategory = browseByCategory;
@@ -551,12 +582,13 @@ function buildDistrictFilters() {
 function heroSearch() {
   const q    = document.getElementById('hero-search')?.value || '';
   const dist = document.getElementById('hero-district')?.value || '';
+  activeCat = null; // clear any active category so results show across all categories
   showView('browse');
   setTimeout(() => {
     const bs = document.getElementById('browse-search');
     const fd = document.getElementById('filter-district');
-    if (bs) { bs.value = q; }
-    if (fd) { fd.value = dist; }
+    if (bs) bs.value = q;
+    if (fd) fd.value = dist;
     applyFilters();
   }, 80);
 }
@@ -672,9 +704,10 @@ function renderFavoritesView() {
 // ─────────────────────────────────────────
 
 function showProviderProfile(id) {
-  // remember which view we came from so the back button goes to the right place
+  // Remember which view we came from and save its scroll position
   const active = document.querySelector('.view.active');
   profileBackView = active ? (active.id.replace('view-', '') || 'home') : 'home';
+  savedScrollPos[profileBackView] = window.scrollY;
 
   const w = allWorkers.find(x => x.id === id);
   if (!w) {
@@ -1272,17 +1305,16 @@ function renderDVDash(el) {
         '<nav>' +
           '<div class="dash-menu-item active" onclick="dvTab(\'overzicht\',this)">Overzicht</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'boekingen\',this)">Boekingen</div>' +
-          '<div class="dash-menu-item" onclick="dvTab(\'opdrachten\',this)">Opdrachten</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'agenda\',this)">Agenda</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'notificaties\',this)">Notificaties <span id="dash-notif-badge" class="hidden" style="background:#e53e3e;color:#fff;border-radius:50%;padding:1px 6px;font-size:11px;margin-left:4px;"></span></div>' +
-          '<div class="dash-menu-item" onclick="dvTab(\'portfolio\',this)">🖼️ Portfolio</div>' +
+          '<div class="dash-menu-item" onclick="dvTab(\'portfolio\',this)">Portfolio</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'profiel\',this)">Profiel bewerken</div>' +
-          '<div class="dash-menu-item" onclick="dvTab(\'account\',this)">Account</div>' +
+          '<div class="dash-menu-item" onclick="dvTab(\'account\',this)">Settings</div>' +
           (currentUser.is_admin ? '<div class="dash-menu-item" onclick="dvTab(\'admin\',this)">Beheer</div>' : '') +
         '</nav>' +
       '</aside>' +
       '<div class="dashboard-panel">' +
-        _dvOverzicht() + _dvBoekingen() + _dvOpdrachten() + _dvAgenda() + _dvNotifs() + _dvPortfolioTab() + _dvProfiel() + _dvAccount() + (currentUser.is_admin ? _dvAdminPanel() : '') +
+        _dvOverzicht() + _dvBoekingen() + _dvAgenda() + _dvNotifs() + _dvPortfolioTab() + _dvProfiel() + _dvAccount() + (currentUser.is_admin ? _dvAdminPanel() : '') +
       '</div>' +
     '</div>';
 
@@ -1298,8 +1330,7 @@ function dvTab(panel, el) {
   document.querySelectorAll('#dashboard-content .dash-panel').forEach(p => p.classList.add('hidden'));
   const target = document.getElementById('dv-p-' + panel);
   if (target) target.classList.remove('hidden');
-  if (panel === 'boekingen')    loadBookingsDV();
-  if (panel === 'opdrachten')   loadDVOpdrachten();
+  if (panel === 'boekingen')    { loadBookingsDV(); _resetDVBkSubTab(); }
   if (panel === 'agenda')       renderCalendar();
   if (panel === 'notificaties') loadDVNotifications();
   if (panel === 'portfolio')    loadDVPortfolioTab();
@@ -1307,6 +1338,23 @@ function dvTab(panel, el) {
   if (panel === 'admin')        loadAdminPanel();
 }
 window.dvTab = dvTab;
+
+function dvBkSubTab(sub, el) {
+  document.querySelectorAll('#dv-bk-sub-tabs .bk-filter').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('dv-bk-sub-boekingen').style.display  = sub === 'boekingen'  ? '' : 'none';
+  document.getElementById('dv-bk-sub-opdrachten').style.display = sub === 'opdrachten' ? '' : 'none';
+  if (sub === 'opdrachten') loadDVOpdrachten();
+}
+window.dvBkSubTab = dvBkSubTab;
+
+function _resetDVBkSubTab() {
+  const boekEl = document.getElementById('dv-bk-sub-boekingen');
+  const opdEl  = document.getElementById('dv-bk-sub-opdrachten');
+  if (boekEl) boekEl.style.display = '';
+  if (opdEl)  opdEl.style.display  = 'none';
+  document.querySelectorAll('#dv-bk-sub-tabs .bk-filter').forEach((b, i) => b.classList.toggle('active', i === 0));
+}
 
 function _dvOverzicht() {
   const isAvail = currentUser.is_available !== 0;
@@ -1346,7 +1394,17 @@ function _dvOverzicht() {
 function _dvBoekingen() {
   return '<div class="dash-panel hidden" id="dv-p-boekingen">' +
     '<div class="dashboard-panel-title">Boekingen</div>' +
-    '<div id="dv-bk-list"><p>Laden...</p></div>' +
+    '<div class="bk-filter-tabs" id="dv-bk-sub-tabs">' +
+      '<button class="bk-filter active" onclick="dvBkSubTab(\'boekingen\',this)">Boekingen</button>' +
+      '<button class="bk-filter" onclick="dvBkSubTab(\'opdrachten\',this)">Opdrachten</button>' +
+    '</div>' +
+    '<div id="dv-bk-sub-boekingen">' +
+      '<div id="dv-bk-list"><p>Laden...</p></div>' +
+    '</div>' +
+    '<div id="dv-bk-sub-opdrachten" style="display:none">' +
+      '<p style="font-size:.82rem;color:#888;margin:14px 0">Opdrachten in jouw categorie: <strong>' + esc(currentUser.category || '—') + '</strong></p>' +
+      '<div id="dv-job-list"><p style="color:#aaa;font-size:.85rem">Laden...</p></div>' +
+    '</div>' +
   '</div>';
 }
 
@@ -1387,7 +1445,7 @@ function _dvPortfolioTab() {
     '</div>';
   }
   return '<div class="dash-panel hidden" id="dv-p-portfolio">' +
-    '<div class="dashboard-panel-title">🖼️ Portfolio</div>' +
+    '<div class="dashboard-panel-title">Portfolio</div>' +
     '<p style="color:var(--text-muted);font-size:.875rem;margin-bottom:20px">Upload foto\'s en video\'s om uw werk te tonen aan potentiële klanten.</p>' +
     '<div class="portfolio-upload-grid" id="dv-portfolio-upload-grid">' + slots + '</div>' +
     '<p class="portfolio-hint">Ondersteunde formaten: JPG, PNG, GIF, MP4, MOV · Max. 50 MB per bestand</p>' +
@@ -1489,15 +1547,6 @@ function _dvProfiel() {
     '<div class="form-group"><label>Buurt</label><select id="dv-buurt">' + distOpts(currentUser.buurt) + '</select></div>' +
     '<button class="btn-primary" onclick="saveProfile()">Opslaan</button>' +
     '<div class="form-error" id="dv-prof-msg"></div>' +
-    '<hr style="margin:24px 0;border-color:rgba(255,255,255,.08)">' +
-    '<div class="dashboard-panel-title" style="font-size:1rem;margin-bottom:12px">Portfolio</div>' +
-    '<p style="font-size:.8rem;color:#aaa;margin-bottom:12px">Voeg foto\'s en video\'s van je werk toe (max. 10 MB per bestand).</p>' +
-    '<div id="dv-portfolio-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-bottom:14px"></div>' +
-    '<label class="btn-secondary" style="cursor:pointer;display:inline-block;padding:8px 18px;font-size:.84rem">' +
-      'Bestand uploaden' +
-      '<input type="file" id="dv-portfolio-input" accept="image/*,video/*" style="display:none" onchange="uploadPortfolioItem()">' +
-    '</label>' +
-    '<div class="form-error" id="dv-portfolio-msg"></div>' +
   '</div>';
 }
 
@@ -1556,7 +1605,7 @@ window.respondToJob = respondToJob;
 
 function _dvAccount() {
   return '<div class="dash-panel hidden" id="dv-p-account">' +
-    '<div class="dashboard-panel-title">Account instellingen</div>' +
+    '<div class="dashboard-panel-title">Settings</div>' +
     _darkModeCard() +
     '<div class="form-group"><label>Huidig e-mailadres</label><input type="text" disabled value="' + esc(currentUser.email) + '" style="background:#f5f5f5;color:#888"></div>' +
     '<div class="form-group"><label>Nieuw e-mailadres <span style="color:#aaa;font-size:.8rem">(laat leeg om ongewijzigd te laten)</span></label><input type="email" id="dv-new-email" placeholder="nieuw@email.com"></div>' +
@@ -1587,17 +1636,16 @@ function renderKlantDash(el) {
         '<nav>' +
           '<div class="dash-menu-item active" onclick="klantTab(\'overzicht\',this)">Overzicht</div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'boekingen\',this)">Mijn boekingen</div>' +
-          '<div class="dash-menu-item" onclick="klantTab(\'opdrachten\',this)">Opdrachten</div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'favorieten\',this)">Favorieten</div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'reviews\',this)">Mijn reviews</div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'notificaties\',this)">Notificaties <span id="dash-notif-badge" class="hidden" style="background:#e53e3e;color:#fff;border-radius:50%;padding:1px 6px;font-size:11px;margin-left:4px;"></span></div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'profiel\',this)">Mijn profiel</div>' +
-          '<div class="dash-menu-item" onclick="klantTab(\'account\',this)">Account</div>' +
+          '<div class="dash-menu-item" onclick="klantTab(\'account\',this)">Settings</div>' +
           (currentUser.is_admin ? '<div class="dash-menu-item" onclick="klantTab(\'admin\',this)">Beheer</div>' : '') +
         '</nav>' +
       '</aside>' +
       '<div class="dashboard-panel">' +
-        _klantOverzicht() + _klantBoekingen() + _klantOpdrachten() + _klantFavorieten() + _klantReviews() + _klantNotifs() + _klantProfiel() + _klantAccount() + (currentUser.is_admin ? _adminPanel() : '') +
+        _klantOverzicht() + _klantBoekingen() + _klantFavorieten() + _klantReviews() + _klantNotifs() + _klantProfiel() + _klantAccount() + (currentUser.is_admin ? _adminPanel() : '') +
       '</div>' +
     '</div>';
 
@@ -1611,14 +1659,30 @@ function klantTab(panel, el) {
   document.querySelectorAll('#dashboard-content .dash-panel').forEach(p => p.classList.add('hidden'));
   const target = document.getElementById('kl-p-' + panel);
   if (target) target.classList.remove('hidden');
-  if (panel === 'boekingen')    loadKlantBookings('all');
-  if (panel === 'opdrachten')   loadKlantOpdrachten();
+  if (panel === 'boekingen')    { loadKlantBookings('all'); _resetKlantBkSubTab(); }
   if (panel === 'favorieten')   loadKlantFavorieten();
   if (panel === 'reviews')      loadKlantReviews();
   if (panel === 'notificaties') loadKlantNotifications();
   if (panel === 'admin')        loadAdminPanel();
 }
 window.klantTab = klantTab;
+
+function klantBkSubTab(sub, el) {
+  document.querySelectorAll('#kl-bk-sub-tabs .bk-filter').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('kl-bk-sub-boekingen').style.display  = sub === 'boekingen'  ? '' : 'none';
+  document.getElementById('kl-bk-sub-opdrachten').style.display = sub === 'opdrachten' ? '' : 'none';
+  if (sub === 'opdrachten') loadKlantOpdrachten();
+}
+window.klantBkSubTab = klantBkSubTab;
+
+function _resetKlantBkSubTab() {
+  const boekEl = document.getElementById('kl-bk-sub-boekingen');
+  const opdEl  = document.getElementById('kl-bk-sub-opdrachten');
+  if (boekEl) boekEl.style.display = '';
+  if (opdEl)  opdEl.style.display  = 'none';
+  document.querySelectorAll('#kl-bk-sub-tabs .bk-filter').forEach((b, i) => b.classList.toggle('active', i === 0));
+}
 
 function _klantOverzicht() {
   return '<div class="dash-panel" id="kl-p-overzicht">' +
@@ -1669,13 +1733,35 @@ async function loadKlantOverzicht() {
 function _klantBoekingen() {
   return '<div class="dash-panel hidden" id="kl-p-boekingen">' +
     '<div class="dashboard-panel-title">Mijn boekingen</div>' +
-    '<div class="bk-filter-tabs">' +
-      '<button class="bk-filter active" onclick="klantBkFilter(\'all\',this)">Alle</button>' +
-      '<button class="bk-filter" onclick="klantBkFilter(\'pending\',this)">In afwachting</button>' +
-      '<button class="bk-filter" onclick="klantBkFilter(\'accepted\',this)">Geaccepteerd</button>' +
-      '<button class="bk-filter" onclick="klantBkFilter(\'declined\',this)">Afgewezen</button>' +
+    '<div class="bk-filter-tabs" id="kl-bk-sub-tabs">' +
+      '<button class="bk-filter active" onclick="klantBkSubTab(\'boekingen\',this)">Boekingen</button>' +
+      '<button class="bk-filter" onclick="klantBkSubTab(\'opdrachten\',this)">Opdrachten</button>' +
     '</div>' +
-    '<div id="kl-bk-list"><p>Laden...</p></div>' +
+    '<div id="kl-bk-sub-boekingen">' +
+      '<div class="bk-filter-tabs" style="margin-top:12px">' +
+        '<button class="bk-filter active" onclick="klantBkFilter(\'all\',this)">Alle</button>' +
+        '<button class="bk-filter" onclick="klantBkFilter(\'pending\',this)">In afwachting</button>' +
+        '<button class="bk-filter" onclick="klantBkFilter(\'accepted\',this)">Geaccepteerd</button>' +
+        '<button class="bk-filter" onclick="klantBkFilter(\'declined\',this)">Afgewezen</button>' +
+      '</div>' +
+      '<div id="kl-bk-list"><p>Laden...</p></div>' +
+    '</div>' +
+    '<div id="kl-bk-sub-opdrachten" style="display:none">' +
+      '<div class="job-post-form" style="margin-top:14px">' +
+        '<div class="form-group"><label>Titel <span style="color:#e53e3e">*</span></label><input type="text" id="job-title" placeholder="bijv. Elektricien nodig voor installatie"></div>' +
+        '<div class="form-group"><label>Categorie <span style="color:#e53e3e">*</span></label><select id="job-cat">' + _catOpts() + '</select></div>' +
+        '<div class="form-group"><label>Omschrijving</label><textarea id="job-desc" rows="3" placeholder="Beschrijf wat je nodig hebt..."></textarea></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+          '<div class="form-group"><label>Buurt</label><select id="job-buurt">' + distOpts('') + '</select></div>' +
+          '<div class="form-group"><label>Budget (optioneel)</label><input type="text" id="job-budget" placeholder="bijv. SRD 500"></div>' +
+        '</div>' +
+        '<div class="form-group"><label>Datum nodig</label><input type="date" id="job-date"></div>' +
+        '<div class="form-error" id="job-post-err"></div>' +
+        '<button class="btn-primary" onclick="postJob()">Opdracht plaatsen</button>' +
+      '</div>' +
+      '<div class="dashboard-panel-title" style="margin-top:28px;font-size:1rem">Mijn opdrachten</div>' +
+      '<div id="kl-job-list"><p style="color:#aaa;font-size:.85rem">Laden...</p></div>' +
+    '</div>' +
   '</div>';
 }
 
@@ -1800,7 +1886,7 @@ async function saveKlantProfile() {
     msgEl.style.color = 'green';
     msgEl.textContent = 'Profiel opgeslagen!';
     if (document.getElementById('nav-username')) document.getElementById('nav-username').textContent = name;
-    if (document.getElementById('nav-avatar'))   document.getElementById('nav-avatar').textContent   = ini(name);
+    setNavAvatar();
   } catch { msgEl.textContent = 'Verbindingsfout.'; }
 }
 window.saveKlantProfile = saveKlantProfile;
@@ -1934,7 +2020,7 @@ window.viewJobResponses = viewJobResponses;
 
 function _klantAccount() {
   return '<div class="dash-panel hidden" id="kl-p-account">' +
-    '<div class="dashboard-panel-title">Account instellingen</div>' +
+    '<div class="dashboard-panel-title">Settings</div>' +
     _darkModeCard() +
     '<div class="form-group"><label>Huidig e-mailadres</label><input type="text" disabled value="' + esc(currentUser.email) + '" style="background:#f5f5f5;color:#888"></div>' +
     '<div class="form-group"><label>Nieuw e-mailadres <span style="color:#aaa;font-size:.8rem">(laat leeg om ongewijzigd te laten)</span></label><input type="email" id="kl-new-email" placeholder="nieuw@email.com"></div>' +
@@ -2325,7 +2411,7 @@ async function saveProfile() {
     msgEl.style.color = 'green';
     msgEl.textContent = 'Profiel opgeslagen!';
     if (document.getElementById('nav-username')) document.getElementById('nav-username').textContent = name;
-    if (document.getElementById('nav-avatar'))   document.getElementById('nav-avatar').textContent   = ini(name);
+    setNavAvatar();
   } catch { msgEl.textContent = 'Verbindingsfout.'; }
 }
 window.saveProfile = saveProfile;
@@ -2343,8 +2429,7 @@ async function uploadAvatarFor(prefix) {
     currentUser.profile_picture = data.url;
     localStorage.setItem('mkd_user', JSON.stringify(currentUser));
     if (msgEl) { msgEl.style.color = 'green'; msgEl.textContent = 'Foto opgeslagen!'; }
-    const navAv = document.getElementById('nav-avatar');
-    if (navAv) navAv.outerHTML = '<img id="nav-avatar" src="' + API + data.url + '" style="width:32px;height:32px;border-radius:50%;object-fit:cover">';
+    setNavAvatar();
     renderDashboard();
   } catch { if (msgEl) msgEl.textContent = 'Verbindingsfout.'; }
 }
