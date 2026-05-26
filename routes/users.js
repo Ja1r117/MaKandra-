@@ -1,7 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import { db } from '../config/db.js';
-import { verifyToken, verifyAdmin } from '../middleware/auth.js';
+import { verifyToken, verifyAdmin } from '../middlewares/auth.js';
 import { isValidEmail } from '../utils/helpers.js';
 
 const router = express.Router();

@@ -126,10 +126,11 @@ async function handleLogin() {
   try {
     const r    = await fetch(API + '/login', { method: 'POST', headers: ct(), body: JSON.stringify({ email, password }) });
     const data = await r.json();
-    if (!r.ok) { errEl.textContent = data.error; return; }
+    if (!r.ok) { errEl.textContent = apiErr(data); return; }
     errEl.classList.add('hidden');
     currentUser = data.user;
     localStorage.setItem('mkd_user', JSON.stringify(currentUser));
+    if (data.token) localStorage.setItem('mkd_token', data.token);
     document.getElementById('auth-overlay').classList.add('hidden');
     afterLogin();
     showToast('Welkom terug, ' + currentUser.name + '!', 'success');
@@ -218,7 +219,7 @@ async function handleSignup() {
   try {
     const r    = await fetch(API + '/signup', { method: 'POST', headers: ct(), body: JSON.stringify({ first_name: firstName, last_name: lastName, name, email, password, role: 'klant', buurt }) });
     const data = await r.json();
-    if (!r.ok) { errEl.textContent = data.error; return; }
+    if (!r.ok) { errEl.textContent = apiErr(data); return; }
     errEl.classList.add('hidden');
     currentUser = data.user;
     localStorage.setItem('mkd_user', JSON.stringify(currentUser));
@@ -259,7 +260,7 @@ async function handleProviderSignup() {
   try {
     const r    = await fetch(API + '/signup', { method: 'POST', headers: ct(), body: JSON.stringify({ first_name: firstName, last_name: lastName, name, email, password, role: 'dienstverlener', buurt, category, bio, hourly_rate, phone, working_hours }) });
     const data = await r.json();
-    if (!r.ok) { errEl.textContent = data.error; return; }
+    if (!r.ok) { errEl.textContent = apiErr(data); return; }
     errEl.classList.add('hidden');
     currentUser = data.user;
     localStorage.setItem('mkd_user', JSON.stringify(currentUser));
@@ -353,6 +354,7 @@ window.showFavorites = showFavorites;
 function logout() {
   currentUser = null;
   localStorage.removeItem('mkd_user');
+  localStorage.removeItem('mkd_token');
   document.getElementById('nav-auth')?.classList.remove('hidden');
   document.getElementById('nav-user')?.classList.add('hidden');
   document.getElementById('user-dropdown')?.classList.add('hidden');
@@ -899,6 +901,11 @@ async function _loadReviews(providerId) {
         '<p style="color:#555;margin:4px 0 0">' + esc(rv.text) + '</p>' +
       '</div>'
     ).join('');
+    // Hide the review button if the logged-in user already submitted a review
+    if (currentUser && reviews.some(rv => rv.reviewer_id == currentUser.id)) {
+      const btn = document.querySelector('.btn-add-review');
+      if (btn) btn.style.display = 'none';
+    }
   } catch {
     container.innerHTML = '<p style="color:#aaa">Kon beoordelingen niet laden.</p>';
   }
@@ -1131,7 +1138,7 @@ async function submitBooking() {
       body: JSON.stringify({ klant_id: currentUser.id, dienstverlener_id: parseInt(workerId), date, time, duration_minutes, message }),
     });
     const data = await r.json();
-    if (!r.ok) { errEl.textContent = data.error; return; }
+    if (!r.ok) { errEl.textContent = apiErr(data); return; }
     document.getElementById('bk-overlay').classList.add('hidden');
     showToast('Boeking aangevraagd!', 'success');
   } catch { errEl.textContent = 'Verbindingsfout.'; }
@@ -1249,13 +1256,14 @@ async function submitReview() {
     });
     const data = await r.json();
     if (!r.ok) {
-      errEl.textContent = data.error;
+      errEl.textContent = data.error || (Array.isArray(data.errors) ? data.errors[0] : '') || 'Er is een fout opgetreden.';
       submitReview._running = false;
       return;
     }
     errEl.classList.add('hidden');
     document.getElementById('review-overlay').classList.add('hidden');
     showToast('Review geplaatst!', 'success');
+    _loadReviews(parseInt(document.getElementById('review-target-id').value));
   } catch {
     errEl.textContent = 'Verbindingsfout. Controleer of de server actief is.';
   }
@@ -1270,7 +1278,8 @@ window.submitReview = submitReview;
 async function pollNotifications() {
   if (!currentUser) return;
   try {
-    const r      = await fetch(API + '/notifications/' + currentUser.id);
+    const r      = await fetch(API + '/notifications/' + currentUser.id, { headers: ct() });
+    if (!r.ok) return;
     const notifs = await r.json();
     const unread = notifs.filter(n => !n.is_read).length;
     const badge  = document.getElementById('notif-badge');
@@ -1311,7 +1320,7 @@ function renderDVDash(el) {
           '<div class="dash-menu-item" onclick="dvTab(\'notificaties\',this)">Notificaties <span id="dash-notif-badge" class="hidden" style="background:#e53e3e;color:#fff;border-radius:50%;padding:1px 6px;font-size:11px;margin-left:4px;"></span></div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'portfolio\',this)">Portfolio</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'profiel\',this)">Profiel bewerken</div>' +
-          '<div class="dash-menu-item" onclick="dvTab(\'account\',this)">Settings</div>' +
+          '<div class="dash-menu-item" onclick="dvTab(\'account\',this)">Instellingen</div>' +
           (currentUser.is_admin ? '<div class="dash-menu-item" onclick="dvTab(\'admin\',this)">Beheer</div>' : '') +
         '</nav>' +
       '</aside>' +
@@ -1514,7 +1523,8 @@ window.loadDVPortfolioTab = loadDVPortfolioTab;
 
 async function deleteDVPortfolioSlot(itemId) {
   try {
-    await fetch(API + '/portfolio/item/' + itemId, { method: 'DELETE' });
+    const r = await fetch(API + '/portfolio/item/' + itemId, { method: 'DELETE', headers: ct() });
+    if (!r.ok) { const d = await r.json().catch(() => ({})); showToast(d.error || 'Verwijderen mislukt (' + r.status + ').', 'error'); return; }
     loadDVPortfolioTab();
     showToast('Verwijderd.', 'info');
   } catch { showToast('Fout bij verwijderen.', 'error'); }
@@ -1607,7 +1617,7 @@ window.respondToJob = respondToJob;
 
 function _dvAccount() {
   return '<div class="dash-panel hidden" id="dv-p-account">' +
-    '<div class="dashboard-panel-title">Settings</div>' +
+    '<div class="dashboard-panel-title">Instellingen</div>' +
     _darkModeCard() +
     '<div class="form-group"><label>Huidig e-mailadres</label><input type="text" disabled value="' + esc(currentUser.email) + '" style="background:#f5f5f5;color:#888"></div>' +
     '<div class="form-group"><label>Nieuw e-mailadres <span style="color:#aaa;font-size:.8rem">(laat leeg om ongewijzigd te laten)</span></label><input type="email" id="dv-new-email" placeholder="nieuw@email.com"></div>' +
@@ -1642,7 +1652,7 @@ function renderKlantDash(el) {
           '<div class="dash-menu-item" onclick="klantTab(\'reviews\',this)">Mijn reviews</div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'notificaties\',this)">Notificaties <span id="dash-notif-badge" class="hidden" style="background:#e53e3e;color:#fff;border-radius:50%;padding:1px 6px;font-size:11px;margin-left:4px;"></span></div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'profiel\',this)">Mijn profiel</div>' +
-          '<div class="dash-menu-item" onclick="klantTab(\'account\',this)">Settings</div>' +
+          '<div class="dash-menu-item" onclick="klantTab(\'account\',this)">Instellingen</div>' +
           (currentUser.is_admin ? '<div class="dash-menu-item" onclick="klantTab(\'admin\',this)">Beheer</div>' : '') +
         '</nav>' +
       '</aside>' +
@@ -2022,7 +2032,7 @@ window.viewJobResponses = viewJobResponses;
 
 function _klantAccount() {
   return '<div class="dash-panel hidden" id="kl-p-account">' +
-    '<div class="dashboard-panel-title">Settings</div>' +
+    '<div class="dashboard-panel-title">Instellingen</div>' +
     _darkModeCard() +
     '<div class="form-group"><label>Huidig e-mailadres</label><input type="text" disabled value="' + esc(currentUser.email) + '" style="background:#f5f5f5;color:#888"></div>' +
     '<div class="form-group"><label>Nieuw e-mailadres <span style="color:#aaa;font-size:.8rem">(laat leeg om ongewijzigd te laten)</span></label><input type="email" id="kl-new-email" placeholder="nieuw@email.com"></div>' +
@@ -2070,8 +2080,8 @@ async function loadAdminPanel() {
 
   try {
     const [sRes, uRes] = await Promise.all([
-      fetch(API + '/admin/stats', { headers: { 'x-user-id': currentUser.id } }),
-      fetch(API + '/admin/users', { headers: { 'x-user-id': currentUser.id } }),
+      fetch(API + '/admin/stats', { headers: ct() }),
+      fetch(API + '/admin/users', { headers: ct() }),
     ]);
     const stats = await sRes.json();
     const users = await uRes.json();
@@ -2108,7 +2118,7 @@ async function adminDeleteUser(userId, name) {
   if (!confirm('Gebruiker "' + name + '" definitief verwijderen?')) return;
   try {
     const r = await fetch(API + '/admin/users/' + userId, {
-      method: 'DELETE', headers: { 'x-user-id': currentUser.id },
+      method: 'DELETE', headers: ct(),
     });
     const data = await r.json();
     showToast(r.ok ? 'Gebruiker verwijderd.' : data.error, r.ok ? 'info' : 'error');
@@ -2270,7 +2280,8 @@ window.uploadPortfolioItem = uploadPortfolioItem;
 async function deletePortfolioItem(id, btn) {
   btn.textContent = '…';
   try {
-    await fetch(API + '/portfolio/item/' + id, { method: 'DELETE' });
+    const r = await fetch(API + '/portfolio/item/' + id, { method: 'DELETE', headers: ct() });
+    if (!r.ok) { btn.textContent = '✕'; const d = await r.json().catch(() => ({})); showToast(d.error || 'Verwijderen mislukt.', 'error'); return; }
     loadDVPortfolio();
   } catch { btn.textContent = '✕'; }
 }
@@ -2311,7 +2322,8 @@ async function loadKlantNotifications() {
 
 async function _renderNotifList(el) {
   try {
-    const r      = await fetch(API + '/notifications/' + currentUser.id);
+    const r      = await fetch(API + '/notifications/' + currentUser.id, { headers: ct() });
+    if (!r.ok) { el.innerHTML = '<p class="empty-plain">Kon notificaties niet laden.</p>'; return; }
     const notifs = await r.json();
     await fetch(API + '/notifications/' + currentUser.id + '/read', { method: 'PUT' });
     pollNotifications();
@@ -2432,7 +2444,17 @@ async function uploadAvatarFor(prefix) {
     localStorage.setItem('mkd_user', JSON.stringify(currentUser));
     if (msgEl) { msgEl.style.color = 'green'; msgEl.textContent = 'Foto opgeslagen!'; }
     setNavAvatar();
-    renderDashboard();
+    // Update sidebar avatar in-place — avoid renderDashboard() which resets to Overzicht tab
+    const sideImg = document.querySelector('.dash-avatar-img');
+    if (sideImg) {
+      sideImg.src = API + data.url;
+    } else {
+      const placeholder = document.querySelector('.dash-avatar');
+      if (placeholder) placeholder.outerHTML = '<img src="' + API + data.url + '" class="dash-avatar-img">';
+    }
+    // Update profile form avatar preview
+    const pfpImg = document.querySelector('.pfp-upload-img');
+    if (pfpImg && pfpImg.tagName === 'IMG') pfpImg.src = API + data.url;
   } catch { if (msgEl) msgEl.textContent = 'Verbindingsfout.'; }
 }
 window.uploadAvatarFor = uploadAvatarFor;
@@ -2641,7 +2663,8 @@ async function loadConversations() {
   const el = document.getElementById('cv-convos');
   if (!el) return;
   try {
-    const r = await fetch(API + '/conversations/' + currentUser.id);
+    const r = await fetch(API + '/conversations/' + currentUser.id, { headers: ct() });
+    if (!r.ok) { el.innerHTML = '<div class="chat-empty">Kon gesprekken niet laden.</div>'; return; }
     const convos = await r.json();
     if (!convos.length) {
       el.innerHTML = '<div class="chat-empty" style="padding:24px;font-size:.85rem;flex-direction:column;gap:4px"><span style="font-size:1.8rem">📭</span><span>Nog geen gesprekken</span></div>';
@@ -3165,7 +3188,16 @@ function injectDashCSS() {
 // HELPERS
 // ─────────────────────────────────────────
 
-function ct()  { return { 'Content-Type': 'application/json' }; }
+function ct() {
+  const tok = localStorage.getItem('mkd_token');
+  const h = { 'Content-Type': 'application/json' };
+  if (tok) h['Authorization'] = 'Bearer ' + tok;
+  return h;
+}
+// Extracts the error string from both { error: '...' } and { errors: [...] } shapes
+function apiErr(data) {
+  return data.error || (Array.isArray(data.errors) ? data.errors[0] : '') || 'Er is een fout opgetreden.';
+}
 
 function ini(name) {
   if (!name) return '?';

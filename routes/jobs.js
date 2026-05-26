@@ -1,7 +1,7 @@
 import express from 'express';
 import { db } from '../config/db.js';
-import { verifyToken } from '../middleware/auth.js';
-import { validateJob } from '../middleware/validation.js';
+import { verifyToken } from '../middlewares/auth.js';
+import { validateJob } from '../middlewares/validation.js';
 
 const router = express.Router();
 

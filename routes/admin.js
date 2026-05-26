@@ -1,6 +1,6 @@
 import express from 'express';
 import { db } from '../config/db.js';
-import { verifyToken, verifyAdmin } from '../middleware/auth.js';
+import { verifyToken, verifyAdmin } from '../middlewares/auth.js';
 
 const router = express.Router();
 

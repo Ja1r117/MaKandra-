@@ -3,7 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { db } from '../config/db.js';
-import { verifyToken } from '../middleware/auth.js';
+import { verifyToken } from '../middlewares/auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicImgDir = path.join(__dirname, '../public/img');

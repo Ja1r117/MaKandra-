@@ -96,7 +96,7 @@ export function validateReview() {
     const { provider_id, score, text } = req.body;
 
     if (!provider_id) errors.push('Provider ID is verplicht.');
-    if (!score || score < 1 || score > 5) errors.push('Score moet tussen 1 en 5 zijn.');
+    if (!score || score < 1 || score > 100) errors.push('Score moet tussen 1 en 100 zijn.');
     if (!text || text.trim().length === 0) errors.push('Review tekst is verplicht.');
     if (text && text.length > 5000) errors.push('Review moet korter zijn dan 5000 karakters.');
 

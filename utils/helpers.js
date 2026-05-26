@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-export const FRONTEND = process.env.FRONTEND_URL || 'http://localhost:5500';
+export const FRONTEND = process.env.FRONTEND_URL || 'http://localhost:3000/courses';
 
 export function genToken() { return crypto.randomBytes(32).toString('hex'); }
 

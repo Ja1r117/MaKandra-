@@ -1,6 +1,6 @@
 import express from 'express';
 import { db } from '../config/db.js';
-import { verifyTokenOptional } from '../middleware/auth.js';
+import { verifyTokenOptional } from '../middlewares/auth.js';
 
 const router = express.Router();
 

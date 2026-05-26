@@ -1,7 +1,7 @@
 import express from 'express';
 import { db } from '../config/db.js';
-import { verifyToken } from '../middleware/auth.js';
-import { validateBooking } from '../middleware/validation.js';
+import { verifyToken } from '../middlewares/auth.js';
+import { validateBooking } from '../middlewares/validation.js';
 import { formatDur } from '../utils/helpers.js';
 
 const router = express.Router();

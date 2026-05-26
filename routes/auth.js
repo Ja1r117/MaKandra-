@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from '../config/db.js';
 import { sendEmail } from '../utils/email.js';
-import { validateSignup, validateLogin, validatePasswordChange } from '../middleware/validation.js';
+import { validateSignup, validateLogin, validatePasswordChange } from '../middlewares/validation.js';
 import { genToken, isValidEmail, buildUserPayload, htmlPage, FRONTEND } from '../utils/helpers.js';
 
 const router = express.Router();

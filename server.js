@@ -6,8 +6,8 @@ import { fileURLToPath } from 'url';
 import 'dotenv/config';
 
 import { db } from './config/db.js';
-import { notFound }     from './middleware/notFound.js';
-import { errorHandler } from './middleware/errorHandler.js';
+import { notFound }     from './middlewares/notFound.js';
+import { errorHandler } from './middlewares/errorHandler.js';
 
 import authRoutes          from './routes/auth.js';
 import userRoutes          from './routes/users.js';
@@ -34,6 +34,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ── Root redirect → SPA ───────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  const qs = Object.keys(req.query).length ? '?' + new URLSearchParams(req.query).toString() : '';
+  res.redirect(301, '/courses/' + qs);
+});
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use('/',       authRoutes);

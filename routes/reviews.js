@@ -1,7 +1,7 @@
 import express from 'express';
 import { db } from '../config/db.js';
-import { verifyToken } from '../middleware/auth.js';
-import { validateReview } from '../middleware/validation.js';
+import { verifyToken } from '../middlewares/auth.js';
+import { validateReview } from '../middlewares/validation.js';
 
 const router = express.Router();
 
@@ -9,6 +9,11 @@ const router = express.Router();
 router.post('/reviews', verifyToken, validateReview(), async (req, res) => {
   try {
     const { reviewer_id, provider_id, score, text } = req.body;
+    const [existing] = await db.query(
+      'SELECT id FROM reviews WHERE reviewer_id = ? AND provider_id = ?',
+      [reviewer_id, provider_id]
+    );
+    if (existing.length) return res.status(400).json({ error: 'Je hebt al een beoordeling gegeven voor deze dienstverlener.' });
     await db.query(
       'INSERT INTO reviews (reviewer_id, provider_id, score, text) VALUES (?, ?, ?, ?)',
       [reviewer_id, provider_id, score, text]
