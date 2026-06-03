@@ -25,7 +25,7 @@ export function buildUserPayload(u) {
     email:           u.email,
     role:            u.role,
     role_id:         u.role_id        || null,
-    buurt:           u.buurt,
+    district:           u.district,
     category:        u.category       || null,
     experience:      u.experience     || null,
     bio:             u.bio            || null,

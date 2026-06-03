@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
   password             VARCHAR(255) NOT NULL,
   role                 VARCHAR(50)  NOT NULL DEFAULT 'klant',
   role_id              INT          NULL,
-  buurt                VARCHAR(100) NULL,
+  district                VARCHAR(100) NULL,
   category             VARCHAR(100) NULL,
   experience           VARCHAR(255) NULL,
   bio                  TEXT         NULL,
@@ -129,38 +129,57 @@ CREATE TABLE IF NOT EXISTS portfolio (
 -- ── jobs ───────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS jobs (
   id           INT          AUTO_INCREMENT PRIMARY KEY,
-  user_id      INT          NOT NULL,
+  klant_id     INT          NOT NULL,
   title        VARCHAR(255) NOT NULL,
-  description  TEXT         NOT NULL,
+  description  TEXT         NULL,
   category     VARCHAR(100) NOT NULL,
-  buurt        VARCHAR(100) NULL,
-  status       ENUM('open','in_progress','completed','cancelled')
+  district        VARCHAR(100) NULL,
+  budget       VARCHAR(100) NULL,
+  date_needed  DATE         NULL,
+  status       ENUM('open','closed','in_progress','completed','cancelled')
                            NOT NULL DEFAULT 'open',
   created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_jobs_user
-    FOREIGN KEY (user_id) REFERENCES users(id)
+  CONSTRAINT fk_jobs_klant
+    FOREIGN KEY (klant_id) REFERENCES users(id)
     ON DELETE CASCADE ON UPDATE CASCADE,
-  INDEX idx_jobs_user (user_id),
+  INDEX idx_jobs_klant (klant_id),
   INDEX idx_jobs_category (category),
   INDEX idx_jobs_status (status)
+);
+
+-- ── job_responses ──────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS job_responses (
+  id                INT          AUTO_INCREMENT PRIMARY KEY,
+  job_id            INT          NOT NULL,
+  dienstverlener_id INT          NOT NULL,
+  message           TEXT         NULL,
+  created_at        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_jr_job
+    FOREIGN KEY (job_id) REFERENCES jobs(id)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_jr_dv
+    FOREIGN KEY (dienstverlener_id) REFERENCES users(id)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  INDEX idx_jr_job (job_id),
+  INDEX idx_jr_dv (dienstverlener_id)
 );
 
 -- ── messages ───────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS messages (
   id           INT          AUTO_INCREMENT PRIMARY KEY,
   sender_id    INT          NOT NULL,
-  recipient_id INT          NOT NULL,
+  receiver_id  INT          NOT NULL,
   message      TEXT         NOT NULL,
   is_read      TINYINT(1)   NOT NULL DEFAULT 0,
   created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_msg_sender
     FOREIGN KEY (sender_id) REFERENCES users(id)
     ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT fk_msg_recipient
-    FOREIGN KEY (recipient_id) REFERENCES users(id)
+  CONSTRAINT fk_msg_receiver
+    FOREIGN KEY (receiver_id) REFERENCES users(id)
     ON DELETE CASCADE ON UPDATE CASCADE,
   INDEX idx_msg_sender (sender_id),
-  INDEX idx_msg_recipient (recipient_id),
+  INDEX idx_msg_receiver (receiver_id),
   INDEX idx_msg_created (created_at)
 );
 

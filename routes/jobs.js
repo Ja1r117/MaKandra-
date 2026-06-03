@@ -8,10 +8,10 @@ const router = express.Router();
 // CREATE job
 router.post('/jobs', verifyToken, validateJob(), async (req, res) => {
   try {
-    const { klant_id, title, description, category, buurt, budget, date_needed } = req.body;
+    const { klant_id, title, description, category, district, budget, date_needed } = req.body;
     const [result] = await db.query(
-      'INSERT INTO jobs (klant_id, title, description, category, buurt, budget, date_needed) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [klant_id, title, description || null, category, buurt || null, budget || null, date_needed || null]
+      'INSERT INTO jobs (klant_id, title, description, category, district, budget, date_needed) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [klant_id, title, description || null, category, district || null, budget || null, date_needed || null]
     );
     res.status(201).json({ id: result.insertId });
   } catch (err) { res.status(500).json({ error: err.message }); }
@@ -79,7 +79,7 @@ router.post('/job-responses', async (req, res) => {
 router.get('/job-responses/:jobId', async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT jr.*, u.name AS dv_name, u.category, u.buurt, u.hourly_rate, u.profile_picture
+      `SELECT jr.*, u.name AS dv_name, u.category, u.district, u.hourly_rate, u.profile_picture
        FROM job_responses jr JOIN users u ON jr.dienstverlener_id = u.id
        WHERE jr.job_id = ? ORDER BY jr.created_at ASC`,
       [req.params.jobId]

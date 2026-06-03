@@ -14,7 +14,7 @@
 export function validateSignup() {
   return (req, res, next) => {
     const errors = [];
-    const { first_name, last_name, name, email, password, role, buurt } = req.body;
+    const { first_name, last_name, name, email, password, role, district } = req.body;
 
     // Name validation
     const displayName = (first_name || '').trim() || (last_name || '').trim() || (name || '').trim();
@@ -38,7 +38,7 @@ export function validateSignup() {
     if (!role) errors.push('Rol is verplicht.');
 
     // District validation
-    if (!buurt) errors.push('District is verplicht.');
+    if (!district) errors.push('District is verplicht.');
 
     if (errors.length > 0) {
       return res.status(400).json({ errors });

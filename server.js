@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
+import bcrypt from 'bcryptjs';
 
 import { db } from './config/db.js';
 import { notFound }     from './middlewares/notFound.js';
@@ -119,7 +120,7 @@ app.use(errorHandler);
       title VARCHAR(255) NOT NULL,
       description TEXT,
       category VARCHAR(100) NOT NULL,
-      buurt VARCHAR(100),
+      district VARCHAR(100),
       budget VARCHAR(100),
       date_needed DATE,
       status ENUM('open','closed') NOT NULL DEFAULT 'open',
@@ -179,6 +180,25 @@ app.use(errorHandler);
       try { await db.query(sql); } catch { /* column already exists — skip */ }
     }
 
+    // ── Schema compatibility migrations (new DB uses different column names) ────
+    // messages: 005_schema.sql uses 'recipient_id' but app code uses 'receiver_id'
+    try { await db.query('ALTER TABLE messages DROP FOREIGN KEY fk_msg_recipient'); } catch { /* FK not present */ }
+    try { await db.query('ALTER TABLE messages CHANGE COLUMN recipient_id receiver_id INT NOT NULL'); } catch { /* already correct */ }
+    // jobs: 005_schema.sql uses 'user_id' but app code uses 'klant_id'
+    try { await db.query('ALTER TABLE jobs DROP FOREIGN KEY fk_jobs_user'); } catch { /* FK not present */ }
+    try { await db.query('ALTER TABLE jobs CHANGE COLUMN user_id klant_id INT NOT NULL'); } catch { /* already correct */ }
+    // jobs: add missing columns (budget, date_needed) that server init expects
+    try { await db.query('ALTER TABLE jobs ADD COLUMN budget VARCHAR(100) NULL'); } catch { /* already exists */ }
+    try { await db.query('ALTER TABLE jobs ADD COLUMN date_needed DATE NULL'); } catch { /* already exists */ }
+    // jobs: status ENUM must include 'closed' for routes/jobs.js
+    try {
+      await db.query("ALTER TABLE jobs MODIFY COLUMN status ENUM('open','closed','in_progress','completed','cancelled') NOT NULL DEFAULT 'open'");
+    } catch { /* already correct */ }
+    // bookings: status ENUM must include 'completed' for historical booking data
+    try {
+      await db.query("ALTER TABLE bookings MODIFY COLUMN status ENUM('pending','accepted','completed','declined','cancelled') NOT NULL DEFAULT 'pending'");
+    } catch { /* already correct */ }
+
     try { await db.query('UPDATE users SET email_verified = 1 WHERE email_verified IS NULL OR email_verified = 0'); } catch { /* skip */ }
     
     // Migrate image paths from /uploads/ to /img/
@@ -205,6 +225,21 @@ app.use(errorHandler);
           category=VALUES(category), experience=VALUES(experience),
           hourly_rate=VALUES(hourly_rate), phone=VALUES(phone),
           working_hours=VALUES(working_hours), is_available=VALUES(is_available)`);
+    } catch { /* skip */ }
+
+    // Fix invalid bcrypt hashes inserted by seed data (placeholder hashes)
+    try {
+      const [badRows] = await db.query(
+        "SELECT COUNT(*) AS cnt FROM users WHERE password LIKE '$2a$10$abcdefghijklmnopqrstuvwxyz%'"
+      );
+      if (badRows[0].cnt > 0) {
+        const fixedHash = await bcrypt.hash('MaKandra2024!', 10);
+        await db.query(
+          "UPDATE users SET password = ? WHERE password LIKE '$2a$10$abcdefghijklmnopqrstuvwxyz%'",
+          [fixedHash]
+        );
+        console.log(`Fixed ${badRows[0].cnt} seed user(s) with invalid password hashes. Test password: MaKandra2024!`);
+      }
     } catch { /* skip */ }
 
     console.log('DB init complete — server starting.');

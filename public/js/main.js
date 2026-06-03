@@ -202,7 +202,7 @@ async function handleSignup() {
   const email     = document.getElementById('su-email').value.trim();
   const password  = document.getElementById('su-password').value;
   const confirm   = document.getElementById('su-confirm-password').value;
-  const buurt     = document.getElementById('su-district').value;
+  const district     = document.getElementById('su-district').value;
   const errEl     = document.getElementById('signup-error');
   errEl.textContent = '';
   errEl.classList.remove('hidden');
@@ -213,16 +213,17 @@ async function handleSignup() {
   if (!password)                   { errEl.textContent = 'Wachtwoord is verplicht.'; return; }
   if (password.length < 6)         { errEl.textContent = 'Wachtwoord moet minimaal 6 tekens zijn.'; return; }
   if (password !== confirm)        { errEl.textContent = 'Wachtwoorden komen niet overeen.'; return; }
-  if (!buurt)                      { errEl.textContent = 'Selecteer een district.'; return; }
+  if (!district)                      { errEl.textContent = 'Selecteer een district.'; return; }
 
   const name = lastName ? firstName + ' ' + lastName : firstName;
   try {
-    const r    = await fetch(API + '/signup', { method: 'POST', headers: ct(), body: JSON.stringify({ first_name: firstName, last_name: lastName, name, email, password, role: 'klant', buurt }) });
+    const r    = await fetch(API + '/signup', { method: 'POST', headers: ct(), body: JSON.stringify({ first_name: firstName, last_name: lastName, name, email, password, role: 'klant', district }) });
     const data = await r.json();
     if (!r.ok) { errEl.textContent = apiErr(data); return; }
     errEl.classList.add('hidden');
     currentUser = data.user;
     localStorage.setItem('mkd_user', JSON.stringify(currentUser));
+    if (data.token) localStorage.setItem('mkd_token', data.token);
     document.getElementById('auth-overlay').classList.add('hidden');
     afterLogin();
     showToast('Welkom bij MaKandra, ' + currentUser.name + '!', 'success');
@@ -237,7 +238,7 @@ async function handleProviderSignup() {
   const email        = document.getElementById('pv-email').value.trim();
   const password     = document.getElementById('pv-password').value;
   const confirm      = document.getElementById('pv-confirm-password').value;
-  const buurt        = document.getElementById('pv-district').value;
+  const district        = document.getElementById('pv-district').value;
   const category     = document.getElementById('pv-category').value;
   const bio          = document.getElementById('pv-tagline')?.value.trim() || '';
   const hourly_rate  = document.getElementById('pv-price')?.value || null;
@@ -253,17 +254,18 @@ async function handleProviderSignup() {
   if (!password)                   { errEl.textContent = 'Wachtwoord is verplicht.'; return; }
   if (password.length < 6)         { errEl.textContent = 'Wachtwoord moet minimaal 6 tekens zijn.'; return; }
   if (password !== confirm)        { errEl.textContent = 'Wachtwoorden komen niet overeen.'; return; }
-  if (!buurt)                      { errEl.textContent = 'Selecteer een district.'; return; }
+  if (!district)                      { errEl.textContent = 'Selecteer een district.'; return; }
   if (!category)                   { errEl.textContent = 'Selecteer een categorie.'; return; }
 
   const name = lastName ? firstName + ' ' + lastName : firstName;
   try {
-    const r    = await fetch(API + '/signup', { method: 'POST', headers: ct(), body: JSON.stringify({ first_name: firstName, last_name: lastName, name, email, password, role: 'dienstverlener', buurt, category, bio, hourly_rate, phone, working_hours }) });
+    const r    = await fetch(API + '/signup', { method: 'POST', headers: ct(), body: JSON.stringify({ first_name: firstName, last_name: lastName, name, email, password, role: 'dienstverlener', district, category, bio, hourly_rate, phone, working_hours }) });
     const data = await r.json();
     if (!r.ok) { errEl.textContent = apiErr(data); return; }
     errEl.classList.add('hidden');
     currentUser = data.user;
     localStorage.setItem('mkd_user', JSON.stringify(currentUser));
+    if (data.token) localStorage.setItem('mkd_token', data.token);
     document.getElementById('auth-overlay').classList.add('hidden');
     afterLogin();
     showToast('Welkom bij MaKandra, ' + currentUser.name + '!', 'success');
@@ -426,7 +428,7 @@ async function loadHomeData() {
 
 const CAT_ICONS = {
   'Schilders': '🖌️', 'Elektriciens': '⚡', 'Hoveniers': '🌿',
-  'Bank- & Mattenreiniging': '🛋️', 'Fotografie': '📷', 'Video & Animatie': '🎬',
+  'Bank- & Mattenreiniging': '🛋️', 'Fotografen': '📷', 'Video & Animatie': '🎬',
   'Muziek & Audio': '🎵', 'Coaching & Training': '🎯', 'Schoonheid & Wellness': '💆',
   'Evenementen': '🎉', 'Grafisch Ontwerp': '🎨', 'Bouw & Constructie': '🏗️', 'Overig': '🔧',
 };
@@ -437,7 +439,7 @@ const CAT_CSS = {
   'Elektriciens':            'elektriciens',
   'Hoveniers':               'hoveniers',
   'Bank- & Mattenreiniging': 'bank-mattenreiniging',
-  'Fotografie':              'fotografie',
+  'Fotografen':              'fotografie',
   'Video & Animatie':        'video-animatie',
   'Muziek & Audio':          'muziek-audio',
   'Coaching & Training':     'coaching-training',
@@ -496,7 +498,7 @@ function applyFilters() {
 
   let filtered = allWorkers.filter(w => {
     const matchSearch   = !search   || w.name.toLowerCase().includes(search);
-    const matchDistrict = !district || w.buurt === district;
+    const matchDistrict = !district || w.district === district;
     const matchCat      = !activeCat || w.category === activeCat;
     return matchSearch && matchDistrict && matchCat;
   });
@@ -632,7 +634,7 @@ function providerCard(w, rank) {
       '<div class="provider-name">' + esc(w.name) + availDot + '</div>' +
       '<div class="provider-tagline">' + esc(w.bio || '') + '</div>' +
       '<div class="provider-meta">' +
-        (w.buurt    ? '<span class="meta-chip pcard-chip-dist">📍 ' + esc(w.buurt)    + '</span>' : '') +
+        (w.district    ? '<span class="meta-chip pcard-chip-dist">📍 ' + esc(w.district)    + '</span>' : '') +
         (w.category ? '<span class="meta-chip pcard-chip-cat">🏷 ' + esc(w.category) + '</span>' : '') +
       '</div>' +
       (price ? '<div class="provider-price">' + price + '</div>' : '') +
@@ -760,7 +762,7 @@ function _renderProfile(w) {
             (w.bio ? '<div class="profile-tagline">' + esc(w.bio.slice(0,100)) + (w.bio.length > 100 ? '…' : '') + '</div>' : '') +
             '<div class="profile-badges">' +
               (w.category    ? '<span class="profile-badge">🏷️ ' + esc(w.category) + '</span>' : '') +
-              (w.buurt       ? '<span class="profile-badge">📍 ' + esc(w.buurt)    + '</span>' : '') +
+              (w.district       ? '<span class="profile-badge">📍 ' + esc(w.district)    + '</span>' : '') +
               (w.review_count ? '<span class="profile-badge">⭐ ' + w.review_count + ' beoordelingen</span>' : '') +
               (w.working_hours ? '<span class="profile-badge">🕐 ' + esc(fmtSchedule(w.working_hours)) + '</span>' : '') +
               availBadge +
@@ -796,14 +798,12 @@ function _renderProfile(w) {
           '<div class="trust-stats">' +
             '<div class="trust-stat-box"><div class="ts-icon">👥</div><div class="ts-num" id="ts-clients">—</div><div class="ts-label">Totale klanten</div></div>' +
             '<div class="trust-stat-box"><div class="ts-icon">⭐</div><div class="ts-num">' + (w.review_count || '—') + '</div><div class="ts-label">Beoordelingen</div></div>' +
-            '<div class="trust-stat-box"><div class="ts-icon">🔄</div><div class="ts-num" id="ts-returning">—</div><div class="ts-label">Terugkerende klanten</div></div>' +
           '</div>' +
           '<div class="trust-bars">' +
             /* Vertrouwensscore bar — computed from clients + reviews */
             '<div class="trust-bar-row"><span>Vertrouwensscore</span><div class="trust-bar"><div class="trust-bar-fill" id="tb-vs" style="width:' + vsScore + '%"></div></div><span id="tbl-vs">' + vsScore + '%</span></div>' +
             /* Beoordelingsscore bar — average of review scores (issue 7 rename) */
             '<div class="trust-bar-row"><span>Beoordelingsscore</span><div class="trust-bar"><div class="trust-bar-fill tb-orange" id="tb-rating" style="width:' + avgScore + '%"></div></div><span>' + (avgScore || '—') + (avgScore ? '%' : '') + '</span></div>' +
-            '<div class="trust-bar-row"><span>Terugkerende klanten</span><div class="trust-bar"><div class="trust-bar-fill tb-blue" id="tb-returning" style="width:0%"></div></div><span id="tbl-returning">—</span></div>' +
           '</div>' +
         '</div>' +
 
@@ -830,10 +830,9 @@ function _renderProfile(w) {
       '<div class="profile-side-col">' +
         '<div class="sidebar-info-card">' +
           '<h3>Dienst info</h3>' +
-          '<div class="info-row"><span>District</span><span>' + esc(w.buurt || '—') + '</span></div>' +
+          '<div class="info-row"><span>District</span><span>' + esc(w.district || '—') + '</span></div>' +
           '<div class="info-row"><span>Categorie</span><span>' + esc(w.category || '—') + '</span></div>' +
           '<div class="info-row"><span>Klanten</span><span id="di-clients">—</span></div>' +
-          '<div class="info-row"><span>Terugkerende</span><span id="di-returning">—</span></div>' +
           '<div class="info-row"><span>Beoordelingen</span><span>' + (w.review_count || '—') + '</span></div>' +
           (w.vertrouwenscore != null ? '<div class="info-row"><span>Vertrouwensscore</span><span style="color:var(--primary);font-weight:700">' + vsScore + '%</span></div>' : '') +
           (avgScore ? '<div class="info-row"><span>Beoordelingsscore</span><span style="color:#ea580c;font-weight:700">' + avgScore + '%</span></div>' : '') +
@@ -901,11 +900,6 @@ async function _loadReviews(providerId) {
         '<p style="color:#555;margin:4px 0 0">' + esc(rv.text) + '</p>' +
       '</div>'
     ).join('');
-    // Hide the review button if the logged-in user already submitted a review
-    if (currentUser && reviews.some(rv => rv.reviewer_id == currentUser.id)) {
-      const btn = document.querySelector('.btn-add-review');
-      if (btn) btn.style.display = 'none';
-    }
   } catch {
     container.innerHTML = '<p style="color:#aaa">Kon beoordelingen niet laden.</p>';
   }
@@ -919,22 +913,13 @@ async function _loadProviderStats(providerId) {
     const set    = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     const setBar = (id, pct) => { const el = document.getElementById(id); if (el) el.style.width = pct + '%'; };
 
-    set('ts-clients',   s.total_clients);
-    set('ts-returning', s.returning_clients);
-    set('di-clients',   s.total_clients);
-    set('di-returning', s.returning_clients);
+    set('ts-clients', s.total_clients);
+    set('di-clients', s.total_clients);
 
     // Update VS bar with authoritative backend-computed value
     const vs = s.vertrouwenscore != null ? s.vertrouwenscore : 0;
-    setBar('tb-vs',    vs);
-    set('tbl-vs',      vs + '%');
-
-    // Returning-clients bar
-    if (s.total_clients > 0) {
-      const pct = Math.round(s.returning_clients / s.total_clients * 100);
-      setBar('tb-returning', pct);
-      set('tbl-returning',   pct + '%');
-    }
+    setBar('tb-vs',  vs);
+    set('tbl-vs',    vs + '%');
   } catch { /* silent */ }
 }
 
@@ -1396,7 +1381,7 @@ function _dvOverzicht() {
     '</div>' +
     '<div class="dash-stat-row">' +
       '<div class="dash-card">Categorie<br><strong>' + esc(currentUser.category || '-') + '</strong></div>' +
-      '<div class="dash-card">Buurt<br><strong>'     + esc(currentUser.buurt    || '-') + '</strong></div>' +
+      '<div class="dash-card">District<br><strong>'   + esc(currentUser.district    || '-') + '</strong></div>' +
       '<div class="dash-card">Tarief<br><strong>'    + (currentUser.hourly_rate ? 'SRD ' + currentUser.hourly_rate + '/u' : '-') + '</strong></div>' +
     '</div>' +
   '</div>';
@@ -1550,13 +1535,18 @@ function _dvProfiel() {
       '<div class="form-group"><label>Voornaam</label><input type="text" id="dv-firstname" value="' + esc(currentUser.first_name || currentUser.name.split(' ')[0] || '') + '"></div>' +
       '<div class="form-group"><label>Achternaam</label><input type="text" id="dv-lastname" value="' + esc(currentUser.last_name || (currentUser.name.includes(' ') ? currentUser.name.split(' ').slice(1).join(' ') : '')) + '"></div>' +
     '</div>' +
-    '<div class="form-group"><label>Categorie</label><input type="text" id="dv-cat" value="' + esc(currentUser.category || '') + '"></div>' +
+    '<div class="form-group"><label>Categorie</label><select id="dv-cat">' +
+      '<option value="">Selecteer categorie</option>' +
+      ['Schilders','Elektriciens','Hoveniers','Bank- & Mattenreiniging','Fotografen','Video & Animatie','Muziek & Audio','Coaching & Training','Schoonheid & Wellness','Evenementen','Grafisch Ontwerp','Bouw & Constructie','Overig'].map(c =>
+        '<option value="' + esc(c) + '"' + (currentUser.category === c ? ' selected' : '') + '>' + esc(c) + '</option>'
+      ).join('') +
+    '</select></div>' +
     '<div class="form-group"><label>Ervaring</label><input type="text" id="dv-exp" value="' + esc(currentUser.experience || '') + '"></div>' +
     '<div class="form-group"><label>Bio</label><textarea id="dv-bio" rows="4">' + esc(currentUser.bio || '') + '</textarea></div>' +
     '<div class="form-group"><label>Uurtarief (SRD)</label><input type="number" id="dv-rate" value="' + (currentUser.hourly_rate || '') + '"></div>' +
     '<div class="form-group"><label>Telefoon</label><input type="tel" id="dv-phone" value="' + esc(currentUser.phone || '') + '" placeholder="+597 ..."></div>' +
     '<div class="form-group"><label>Werktijden</label>' + _schedPickerHTML('dv', currentUser.working_hours) + '</div>' +
-    '<div class="form-group"><label>Buurt</label><select id="dv-buurt">' + distOpts(currentUser.buurt) + '</select></div>' +
+    '<div class="form-group"><label>District</label><select id="dv-district">' + distOpts(currentUser.district) + '</select></div>' +
     '<button class="btn-primary" onclick="saveProfile()">Opslaan</button>' +
     '<div class="form-error" id="dv-prof-msg"></div>' +
   '</div>';
@@ -1583,7 +1573,7 @@ async function loadDVOpdrachten() {
         '<div class="job-card-top">' +
           '<div>' +
             '<div class="job-title">' + esc(j.title) + '</div>' +
-            '<div class="job-meta">' + esc(j.klant_name) + ' · ' + esc(j.category) + (j.buurt ? ' · ' + esc(j.buurt) : '') + (j.date_needed ? ' · ' + j.date_needed : '') + '</div>' +
+            '<div class="job-meta">' + esc(j.klant_name) + ' · ' + esc(j.category) + (j.district ? ' · ' + esc(j.district) : '') + (j.date_needed ? ' · ' + j.date_needed : '') + '</div>' +
           '</div>' +
           (j.budget ? '<span class="job-budget-tag">💰 ' + esc(j.budget) + '</span>' : '') +
         '</div>' +
@@ -1764,7 +1754,7 @@ function _klantBoekingen() {
         '<div class="form-group"><label>Categorie <span style="color:#e53e3e">*</span></label><select id="job-cat">' + _catOpts() + '</select></div>' +
         '<div class="form-group"><label>Omschrijving</label><textarea id="job-desc" rows="3" placeholder="Beschrijf wat je nodig hebt..."></textarea></div>' +
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
-          '<div class="form-group"><label>Buurt</label><select id="job-buurt">' + distOpts('') + '</select></div>' +
+          '<div class="form-group"><label>District</label><select id="job-district">' + distOpts('') + '</select></div>' +
           '<div class="form-group"><label>Budget (optioneel)</label><input type="text" id="job-budget" placeholder="bijv. SRD 500"></div>' +
         '</div>' +
         '<div class="form-group"><label>Datum nodig</label><input type="date" id="job-date"></div>' +
@@ -1803,7 +1793,7 @@ async function loadKlantFavorieten() {
             '<div style="width:44px;height:44px;border-radius:50%;background:' + avatarColor(w.name) + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.9rem;flex-shrink:0">' + ini(w.name) + '</div>' +
             '<div>' +
               '<strong>' + esc(w.name) + '</strong>' +
-              '<div style="font-size:.8rem;color:#888">' + esc(w.category || '') + (w.buurt ? ' · ' + esc(w.buurt) : '') + '</div>' +
+              '<div style="font-size:.8rem;color:#888">' + esc(w.category || '') + (w.district ? ' · ' + esc(w.district) : '') + '</div>' +
             '</div>' +
           '</div>' +
           '<div style="display:flex;gap:8px;flex-shrink:0">' +
@@ -1918,7 +1908,7 @@ function _klantOpdrachten() {
       '<div class="form-group"><label>Categorie <span style="color:#e53e3e">*</span></label><select id="job-cat">' + _catOpts() + '</select></div>' +
       '<div class="form-group"><label>Omschrijving</label><textarea id="job-desc" rows="3" placeholder="Beschrijf wat je nodig hebt..."></textarea></div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
-        '<div class="form-group"><label>Buurt</label><select id="job-buurt">' + distOpts('') + '</select></div>' +
+        '<div class="form-group"><label>District</label><select id="job-district">' + distOpts('') + '</select></div>' +
         '<div class="form-group"><label>Budget (optioneel)</label><input type="text" id="job-budget" placeholder="bijv. SRD 500"></div>' +
       '</div>' +
       '<div class="form-group"><label>Datum nodig</label><input type="date" id="job-date"></div>' +
@@ -1934,7 +1924,7 @@ async function postJob() {
   const title    = document.getElementById('job-title')?.value.trim();
   const category = document.getElementById('job-cat')?.value;
   const desc     = document.getElementById('job-desc')?.value.trim();
-  const buurt    = document.getElementById('job-buurt')?.value;
+  const district    = document.getElementById('job-district')?.value;
   const budget   = document.getElementById('job-budget')?.value.trim();
   const date     = document.getElementById('job-date')?.value;
   const errEl    = document.getElementById('job-post-err');
@@ -1946,7 +1936,7 @@ async function postJob() {
   try {
     const r = await fetch(API + '/jobs', {
       method: 'POST', headers: ct(),
-      body: JSON.stringify({ klant_id: currentUser.id, title, description: desc, category, buurt: buurt || null, budget: budget || null, date_needed: date || null }),
+      body: JSON.stringify({ klant_id: currentUser.id, title, description: desc, category, district: district || null, budget: budget || null, date_needed: date || null }),
     });
     const data = await r.json();
     if (!r.ok) { errEl.textContent = data.error; return; }
@@ -1973,7 +1963,7 @@ async function loadKlantOpdrachten() {
         '<div class="job-card-top">' +
           '<div>' +
             '<div class="job-title">' + esc(j.title) + '</div>' +
-            '<div class="job-meta">' + esc(j.category) + (j.buurt ? ' · ' + esc(j.buurt) : '') + (j.date_needed ? ' · ' + j.date_needed : '') + '</div>' +
+            '<div class="job-meta">' + esc(j.category) + (j.district ? ' · ' + esc(j.district) : '') + (j.date_needed ? ' · ' + j.date_needed : '') + '</div>' +
           '</div>' +
           '<div style="display:flex;align-items:center;gap:8px">' +
             '<span class="job-status-badge ' + (j.status === 'open' ? 'job-open' : 'job-closed') + '">' + (j.status === 'open' ? 'Open' : 'Gesloten') + '</span>' +
@@ -2036,7 +2026,7 @@ function _klantAccount() {
     _darkModeCard() +
     '<div class="form-group"><label>Huidig e-mailadres</label><input type="text" disabled value="' + esc(currentUser.email) + '" style="background:#f5f5f5;color:#888"></div>' +
     '<div class="form-group"><label>Nieuw e-mailadres <span style="color:#aaa;font-size:.8rem">(laat leeg om ongewijzigd te laten)</span></label><input type="email" id="kl-new-email" placeholder="nieuw@email.com"></div>' +
-    '<div class="form-group"><label>District</label><select id="kl-buurt">' + distOpts(currentUser.buurt) + '</select></div>' +
+    '<div class="form-group"><label>District</label><select id="kl-district">' + distOpts(currentUser.district) + '</select></div>' +
     '<div class="form-group"><label>Huidig wachtwoord <span style="color:#e53e3e">*</span></label><input type="password" id="kl-cur-pw" placeholder="Verplicht voor wijzigingen"></div>' +
     '<div class="form-error" id="kl-acc-msg"></div>' +
     '<button class="btn-primary" onclick="saveAccountKlant()">E-mail / District opslaan</button>' +
@@ -2155,6 +2145,10 @@ async function loadBookingsDV() {
                 '<button class="btn-ok" onclick="respondBooking(' + b.id + ',\'accepted\',' + b.klant_id + ')">Accepteren</button>' +
                 '<button class="btn-no" onclick="respondBooking(' + b.id + ',\'declined\',' + b.klant_id + ')">Weigeren</button>' +
               '</div>'
+            : b.status === 'accepted'
+            ? '<div class="booking-actions">' +
+                '<button class="btn-ok" onclick="completeBooking(' + b.id + ',' + b.klant_id + ')">✅ Voltooien</button>' +
+              '</div>'
             : '') +
         '</div>' +
       '</div>'
@@ -2175,6 +2169,21 @@ async function respondBooking(bookingId, status, klantId) {
   } catch { showToast('Fout bij bijwerken.', 'error'); }
 }
 window.respondBooking = respondBooking;
+
+async function completeBooking(bookingId, klantId) {
+  try {
+    const r    = await fetch(API + '/bookings/' + bookingId, {
+      method: 'PUT', headers: ct(),
+      body: JSON.stringify({ status: 'completed', klant_id: klantId, dienstverlener_name: currentUser.name }),
+    });
+    const data = await r.json();
+    if (!r.ok) { showToast(data.error || 'Fout bij bijwerken.', 'error'); return; }
+    showToast('Dienst gemarkeerd als voltooid!', 'success');
+    loadBookingsDV();
+    pollNotifications();
+  } catch (e) { showToast('Verbindingsfout: ' + e.message, 'error'); }
+}
+window.completeBooking = completeBooking;
 
 let _klantBkCache = [];
 
@@ -2405,7 +2414,7 @@ async function saveProfile() {
   const experience    = document.getElementById('dv-exp').value.trim();
   const bio           = document.getElementById('dv-bio').value.trim();
   const hourly_rate   = document.getElementById('dv-rate').value;
-  const buurt         = document.getElementById('dv-buurt').value;
+  const district         = document.getElementById('dv-district').value;
   const phone         = document.getElementById('dv-phone').value.trim();
   const working_hours = _schedPickerVal('dv');
   const msgEl         = document.getElementById('dv-prof-msg');
@@ -2415,17 +2424,19 @@ async function saveProfile() {
   try {
     const r = await fetch(API + '/profile/' + currentUser.id, {
       method: 'PUT', headers: ct(),
-      body: JSON.stringify({ first_name, last_name: last_name || null, name, category, experience, bio, hourly_rate: hourly_rate || null, buurt, phone: phone || null, working_hours: working_hours || null }),
+      body: JSON.stringify({ first_name, last_name: last_name || null, name, category, experience, bio, hourly_rate: hourly_rate || null, district, phone: phone || null, working_hours: working_hours || null }),
     });
     const data = await r.json();
     if (!r.ok) { msgEl.textContent = data.error; return; }
 
-    Object.assign(currentUser, { first_name, last_name: last_name || null, name, category, experience, bio, hourly_rate, buurt, phone, working_hours });
+    Object.assign(currentUser, { first_name, last_name: last_name || null, name, category, experience, bio, hourly_rate, district, phone, working_hours });
     localStorage.setItem('mkd_user', JSON.stringify(currentUser));
     msgEl.style.color = 'green';
     msgEl.textContent = 'Profiel opgeslagen!';
     if (document.getElementById('nav-username')) document.getElementById('nav-username').textContent = name;
     setNavAvatar();
+    // Refresh allWorkers so profile view shows updated data immediately
+    fetch(API + '/dienstverleners').then(r => r.json()).then(ws => { allWorkers = ws; }).catch(() => {});
   } catch { msgEl.textContent = 'Verbindingsfout.'; }
 }
 window.saveProfile = saveProfile;
@@ -2519,15 +2530,15 @@ window.saveAccountDV = saveAccountDV;
 function saveAccountKlant() {
   const newEmail = document.getElementById('kl-new-email').value.trim();
   const curPw    = document.getElementById('kl-cur-pw').value;
-  const newBuurt = document.getElementById('kl-buurt').value;
+  const newDistrict = document.getElementById('kl-district').value;
   const msgEl    = document.getElementById('kl-acc-msg');
-  _saveAccountEmail(newEmail, curPw, newBuurt, msgEl);
+  _saveAccountEmail(newEmail, curPw, newDistrict, msgEl);
 }
 window.saveAccountKlant = saveAccountKlant;
 
-async function _saveAccountEmail(newEmail, curPw, newBuurt, msgEl) {
+async function _saveAccountEmail(newEmail, curPw, newDistrict, msgEl) {
   msgEl.style.color = '';
-  if (!newEmail && !newBuurt) { msgEl.textContent = 'Geen wijzigingen om op te slaan.'; return; }
+  if (!newEmail && !newDistrict) { msgEl.textContent = 'Geen wijzigingen om op te slaan.'; return; }
   if (newEmail) {
     if (!curPw) { msgEl.textContent = 'Vul je huidig wachtwoord in om je e-mailadres te wijzigen.'; return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(newEmail)) {
@@ -2538,14 +2549,14 @@ async function _saveAccountEmail(newEmail, curPw, newBuurt, msgEl) {
   const body = {};
   if (newEmail)  body.current_password = curPw;
   if (newEmail)  body.email = newEmail;
-  if (newBuurt)  body.buurt = newBuurt;
+  if (newDistrict)  body.district = newDistrict;
 
   try {
     const r = await fetch(API + '/account/' + currentUser.id, { method: 'PUT', headers: ct(), body: JSON.stringify(body) });
     const data = await r.json();
     if (!r.ok) { msgEl.textContent = data.error; return; }
     if (newEmail) currentUser.email = newEmail;
-    if (newBuurt) currentUser.buurt = newBuurt;
+    if (newDistrict) currentUser.district = newDistrict;
     localStorage.setItem('mkd_user', JSON.stringify(currentUser));
     msgEl.style.color = 'green';
     msgEl.textContent = 'Gegevens bijgewerkt!';
@@ -2822,6 +2833,7 @@ function injectDashCSS() {
     '.booking-badge{padding:4px 10px;border-radius:20px;font-size:.8rem;font-weight:600}',
     '.badge-pending{background:#fff3cd;color:#856404}',
     '.badge-accepted{background:#d1e7dd;color:#0f5132}',
+    '.badge-completed{background:#cfe2ff;color:#084298}',
     '.badge-declined{background:#f8d7da;color:#842029}',
     '.btn-ok{background:#198754;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.85rem}',
     '.btn-no{background:#dc3545;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.85rem}',
@@ -3335,7 +3347,7 @@ function distOpts(selected) {
 }
 
 function statusBadge(status) {
-  const map    = { pending: 'badge-pending', accepted: 'badge-accepted', declined: 'badge-declined' };
-  const labels = { pending: 'In behandeling', accepted: 'Geaccepteerd', declined: 'Geweigerd' };
+  const map    = { pending: 'badge-pending', accepted: 'badge-accepted', declined: 'badge-declined', completed: 'badge-completed', cancelled: 'badge-declined' };
+  const labels = { pending: 'In behandeling', accepted: 'Geaccepteerd', declined: 'Geweigerd', completed: 'Voltooid', cancelled: 'Geannuleerd' };
   return '<span class="booking-badge ' + (map[status] || 'badge-pending') + '">' + (labels[status] || status) + '</span>';
 }

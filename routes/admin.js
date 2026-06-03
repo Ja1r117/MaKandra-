@@ -23,7 +23,7 @@ router.post('/promote', async (req, res) => {
 router.get('/users', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT id, name, email, role, buurt, email_verified, is_admin, created_at FROM users ORDER BY created_at DESC'
+      'SELECT id, name, email, role, district, email_verified, is_admin, created_at FROM users ORDER BY created_at DESC'
     );
     res.json(rows);
   } catch (err) { res.status(500).json({ error: err.message }); }

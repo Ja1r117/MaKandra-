@@ -9,11 +9,6 @@ const router = express.Router();
 router.post('/reviews', verifyToken, validateReview(), async (req, res) => {
   try {
     const { reviewer_id, provider_id, score, text } = req.body;
-    const [existing] = await db.query(
-      'SELECT id FROM reviews WHERE reviewer_id = ? AND provider_id = ?',
-      [reviewer_id, provider_id]
-    );
-    if (existing.length) return res.status(400).json({ error: 'Je hebt al een beoordeling gegeven voor deze dienstverlener.' });
     await db.query(
       'INSERT INTO reviews (reviewer_id, provider_id, score, text) VALUES (?, ?, ?, ?)',
       [reviewer_id, provider_id, score, text]
@@ -40,25 +35,26 @@ router.get('/provider-stats/:id', async (req, res) => {
   try {
     const [[stats]] = await db.query(
       `SELECT COUNT(DISTINCT klant_id) AS total_clients
-       FROM bookings WHERE dienstverlener_id = ? AND status = 'accepted'`,
+       FROM bookings WHERE dienstverlener_id = ? AND status IN ('accepted','completed')`,
       [req.params.id]
     );
     const [[ret]] = await db.query(
       `SELECT COUNT(*) AS returning_clients FROM (
          SELECT klant_id FROM bookings
-         WHERE dienstverlener_id = ? AND status = 'accepted'
+         WHERE dienstverlener_id = ? AND status IN ('accepted','completed')
          GROUP BY klant_id HAVING COUNT(*) > 1
        ) sub`,
       [req.params.id]
     );
     const [[rev]] = await db.query(
-      'SELECT COUNT(*) AS total_reviews FROM reviews WHERE provider_id = ?',
+      'SELECT COUNT(*) AS total_reviews, ROUND(AVG(score)) AS avg_score FROM reviews WHERE provider_id = ?',
       [req.params.id]
     );
     const total_clients = stats.total_clients  || 0;
     const total_reviews = rev.total_reviews    || 0;
-    const vertrouwenscore = Math.min(100, Math.round(
-      Math.min(60, total_clients * 3) + Math.min(40, total_reviews * 4)
+    const avg_score     = rev.avg_score        || 0;
+    const vertrouwenscore = total_reviews === 0 ? 0 : Math.min(100, Math.round(
+      avg_score * 0.8 + Math.min(20, total_clients)
     ));
     res.json({ total_clients, returning_clients: ret.returning_clients || 0, total_reviews, vertrouwenscore });
   } catch (err) { res.status(500).json({ error: err.message }); }

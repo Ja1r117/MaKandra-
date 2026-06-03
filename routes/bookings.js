@@ -54,7 +54,7 @@ router.get('/my-bookings/:id', async (req, res) => {
 router.put('/bookings/:id', async (req, res) => {
   try {
     const { status, klant_id, dienstverlener_id, dienstverlener_name, klant_name } = req.body;
-    if (!['accepted', 'declined', 'cancelled'].includes(status))
+    if (!['accepted', 'declined', 'cancelled', 'completed'].includes(status))
       return res.status(400).json({ error: 'Ongeldige status.' });
     await db.query('UPDATE bookings SET status = ? WHERE id = ?', [status, req.params.id]);
     if (status === 'accepted' || status === 'declined') {
@@ -66,6 +66,10 @@ router.put('/bookings/:id', async (req, res) => {
     if (status === 'cancelled' && dienstverlener_id) {
       await db.query('INSERT INTO notifications (user_id, message) VALUES (?, ?)',
         [dienstverlener_id, `❌ ${klant_name || 'Klant'} heeft de boeking geannuleerd.`]);
+    }
+    if (status === 'completed') {
+      await db.query('INSERT INTO notifications (user_id, message) VALUES (?, ?)',
+        [klant_id, `✅ ${dienstverlener_name} heeft de dienst als voltooid gemarkeerd. Vergeet niet een beoordeling achter te laten!`]);
     }
     res.json({ message: 'Status bijgewerkt!' });
   } catch (err) { res.status(500).json({ error: err.message }); }

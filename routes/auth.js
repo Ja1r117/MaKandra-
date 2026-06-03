@@ -14,7 +14,7 @@ router.post('/signup', validateSignup(), async (req, res) => {
     const {
       first_name, last_name,
       name: rawName,
-      email, password, role, buurt,
+      email, password, role, district,
       category, experience, bio, hourly_rate, phone, working_hours,
     } = req.body;
 
@@ -30,7 +30,7 @@ router.post('/signup', validateSignup(), async (req, res) => {
     if (!password)            return res.status(400).json({ error: 'Wachtwoord is verplicht.' });
     if (password.length < 6)  return res.status(400).json({ error: 'Wachtwoord moet minimaal 6 tekens zijn.' });
     if (!role)                return res.status(400).json({ error: 'Rol is verplicht.' });
-    if (!buurt)               return res.status(400).json({ error: 'District is verplicht.' });
+    if (!district)               return res.status(400).json({ error: 'District is verplicht.' });
 
     const hashed = await bcrypt.hash(password, 10);
 
@@ -43,12 +43,12 @@ router.post('/signup', validateSignup(), async (req, res) => {
     const [result] = await db.query(
       `INSERT INTO users
          (name, first_name, last_name, email, password, role, role_id,
-          buurt, category, experience, bio, hourly_rate, phone, working_hours)
+          district, category, experience, bio, hourly_rate, phone, working_hours)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         displayName, fn || null, ln || null,
         email.toLowerCase(), hashed, role, roleId,
-        buurt, category || null, experience || null, bio || null,
+        district, category || null, experience || null, bio || null,
         (parseFloat(hourly_rate) || null), phone || null, working_hours || null,
       ]
     );
@@ -68,16 +68,22 @@ router.post('/signup', validateSignup(), async (req, res) => {
       } catch { /* skip */ }
     }
 
-    await sendEmail(
-      email,
-      'Welkom bij MaKandra!',
-      `<h2>Welkom bij MaKandra, ${displayName}!</h2>
-       <p>Je account is succesvol aangemaakt. Je kunt nu direct inloggen.</p>
-       <p style="color:#aaa;font-size:.8rem">Als je dit account niet hebt aangemaakt, neem dan contact met ons op.</p>`
-    );
+    try {
+      await sendEmail(
+        email,
+        'Welkom bij MaKandra!',
+        `<h2>Welkom bij MaKandra, ${displayName}!</h2>
+         <p>Je account is succesvol aangemaakt. Je kunt nu direct inloggen.</p>
+         <p style="color:#aaa;font-size:.8rem">Als je dit account niet hebt aangemaakt, neem dan contact met ons op.</p>`
+      );
+    } catch (mailErr) {
+      console.error('Welcome email failed (account still created):', mailErr.message);
+    }
 
     const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [result.insertId]);
-    res.status(201).json({ message: 'Account aangemaakt!', user: buildUserPayload(rows[0]) });
+    const user  = buildUserPayload(rows[0]);
+    const token = jwt.sign(user, process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production-env', { expiresIn: '7d' });
+    res.status(201).json({ message: 'Account aangemaakt!', user, token });
   } catch (err) {
     if (err.code === 'ER_DUP_ENTRY') {
       res.status(400).json({ error: 'Dit e-mailadres is al in gebruik.' });

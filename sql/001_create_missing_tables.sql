@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   title        VARCHAR(255) NOT NULL,
   description  TEXT         NOT NULL,
   category     VARCHAR(100) NOT NULL,
-  buurt        VARCHAR(100) NULL,
+  district        VARCHAR(100) NULL,
   status       ENUM('open','in_progress','completed','cancelled')
                            NOT NULL DEFAULT 'open',
   created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
