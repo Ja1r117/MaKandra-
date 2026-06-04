@@ -30,11 +30,15 @@ CREATE TABLE IF NOT EXISTS users (
   hourly_rate          DECIMAL(10,2) NULL,
   phone                VARCHAR(50)  NULL,
   working_hours        VARCHAR(500) NULL,
-  is_available         TINYINT(1)   NULL DEFAULT 1,
+  is_available         TINYINT(1)   NOT NULL DEFAULT 1,
+  dnd_mode             TINYINT(1)   NOT NULL DEFAULT 0,
   profile_picture      VARCHAR(500) NULL,
-  email_verified       TINYINT(1)   NOT NULL DEFAULT 0,
-  verification_token   VARCHAR(255) NULL,
+  email_verified       TINYINT(1)   NOT NULL DEFAULT 1,
+  verification_token   VARCHAR(64)  NULL,
   is_admin             TINYINT(1)   NOT NULL DEFAULT 0,
+  pw_change_token      VARCHAR(64)  NULL,
+  pw_change_hash       VARCHAR(255) NULL,
+  pw_change_expires    DATETIME     NULL,
   created_at           TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_users_role_id
     FOREIGN KEY (role_id) REFERENCES roles(id)
@@ -66,7 +70,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   time              TIME         NULL,
   duration_minutes  INT          NOT NULL DEFAULT 60,
   message           TEXT         NULL,
-  status            ENUM('pending','accepted','declined','cancelled')
+  status            ENUM('pending','accepted','completed','declined','cancelled')
                                  NOT NULL DEFAULT 'pending',
   created_at        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_bk_klant
