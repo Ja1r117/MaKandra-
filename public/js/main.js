@@ -414,7 +414,8 @@ async function loadHomeData() {
     const fmt = n => n >= 1000 ? (n / 1000).toFixed(1).replace('.', ',') + 'k+' : n + (n > 0 ? '+' : '');
     ['stat-dv', 'stat-dv2'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = fmt(stats.dv_count || 0); });
     ['stat-voltooid', 'stat-voltooid2'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = fmt(stats.voltooid_count || 0); });
-    allWorkers = await workersRes.json();
+    const workersData = await workersRes.json();
+    allWorkers = Array.isArray(workersData) ? workersData : (workersData.data || workersData.workers || workersData.dienstverleners || []);
 
     const grid = document.getElementById('top-providers-grid');
     if (grid) grid.innerHTML = allWorkers.slice(0, 10).map((w, i) => providerCard(w, i + 1)).join('');
@@ -485,7 +486,8 @@ function renderCategoryGrid(cats) {
 async function loadWorkers() {
   try {
     const r = await fetch(API + '/dienstverleners');
-    allWorkers = await r.json();
+    const data = await r.json();
+    allWorkers = Array.isArray(data) ? data : (data.data || data.workers || data.dienstverleners || []);
     buildSidebarCats();
     applyFilters();
   } catch (e) { console.error('Load workers:', e); }

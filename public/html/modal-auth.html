@@ -1,0 +1,210 @@
+<!--
+  partials/modal-auth.html
+  ─────────────────────────
+  Authentication modal with three tabs: Login, Signup (klant), Provider signup.
+  Paste this just before </body> in index.html, after all views.
+  All handlers live in js/main.js.
+-->
+<div id="auth-overlay" class="overlay hidden" onclick="closeAuthModal(event)">
+  <div class="modal" id="auth-modal">
+    <button class="modal-x" onclick="closeAuthModal()">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+
+    <!-- Tabs -->
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tab-btn-login"    onclick="switchAuthTab('login')">Inloggen</button>
+      <button class="modal-tab"        id="tab-btn-signup"   onclick="switchAuthTab('signup')">Aanmelden</button>
+      <button class="modal-tab tab-provider-btn" id="tab-btn-provider" onclick="switchAuthTab('provider')">Dienstverlener worden</button>
+    </div>
+
+    <!-- ── TAB: LOGIN ── -->
+    <div class="modal-body" id="tab-login">
+      <div class="modal-hero-text">
+        <h2>Welkom terug</h2>
+        <p>Log in op jouw MaKandra account</p>
+      </div>
+      <div class="form-group">
+        <label>E-mailadres</label>
+        <input type="email" id="login-email" placeholder="jouw@email.com" />
+      </div>
+      <div class="form-group">
+        <label>Wachtwoord</label>
+        <input type="password" id="login-password" placeholder="••••••••" />
+      </div>
+      <div class="form-error hidden" id="login-error"></div>
+      <button class="btn-primary btn-full" onclick="handleLogin()">Inloggen</button>
+      <p class="form-footer" style="margin-top:10px">
+        <a onclick="toggleForgotPassword()" style="cursor:pointer;color:var(--accent);font-size:.85rem">Wachtwoord vergeten?</a>
+      </p>
+      <p class="form-footer">Nog geen account? <a onclick="switchAuthTab('signup')">Aanmelden</a></p>
+
+      <!-- Forgot password inline form -->
+      <div id="forgot-pw-form" class="hidden" style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1)">
+        <p style="font-size:.85rem;color:#aaa;margin-bottom:12px">
+          Vul je e-mailadres in en we sturen je een link om je wachtwoord te herstellen.
+        </p>
+        <div class="form-group">
+          <label>E-mailadres</label>
+          <input type="email" id="forgot-email" placeholder="jouw@email.com" />
+        </div>
+        <div class="form-error hidden" id="forgot-error"></div>
+        <div id="forgot-success" class="hidden" style="color:#4caf50;font-size:.85rem;margin-bottom:8px"></div>
+        <button class="btn-primary btn-full" onclick="handleForgotPassword()">Verstuur herstelmail</button>
+      </div>
+    </div><!-- /tab-login -->
+
+    <!-- ── TAB: SIGNUP (KLANT) ── -->
+    <div class="modal-body hidden" id="tab-signup">
+      <div class="modal-hero-text">
+        <h2>Account aanmaken</h2>
+        <p>Maak een gratis klantaccount aan</p>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Voornaam</label>
+          <input type="text" id="su-firstname" placeholder="Voornaam" />
+        </div>
+        <div class="form-group">
+          <label>Achternaam</label>
+          <input type="text" id="su-lastname" placeholder="Achternaam" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>E-mailadres</label>
+        <input type="email" id="su-email" placeholder="jouw@email.com" />
+      </div>
+      <div class="form-group">
+        <label>Wachtwoord</label>
+        <input type="password" id="su-password" placeholder="Minimaal 6 tekens" />
+        <div class="pw-strength" id="su-pw-strength"></div>
+      </div>
+      <div class="form-group">
+        <label>Wachtwoord bevestigen</label>
+        <input type="password" id="su-confirm-password" placeholder="Herhaal wachtwoord" />
+      </div>
+      <div class="form-group">
+        <label>District</label>
+        <select id="su-district">
+          <option value="">Selecteer district</option>
+          <option>Paramaribo</option><option>Wanica</option><option>Nickerie</option>
+          <option>Coronie</option><option>Saramacca</option><option>Commewijne</option>
+          <option>Marowijne</option><option>Para</option><option>Brokopondo</option>
+          <option>Sipaliwini</option>
+        </select>
+      </div>
+      <div class="form-error hidden" id="signup-error"></div>
+      <button class="btn-primary btn-full" onclick="handleSignup()">Account aanmaken</button>
+      <p class="form-footer">Al een account? <a onclick="switchAuthTab('login')">Inloggen</a></p>
+    </div><!-- /tab-signup -->
+
+    <!-- ── TAB: SIGNUP (PROVIDER) ── -->
+    <div class="modal-body hidden" id="tab-provider">
+      <div class="modal-hero-text">
+        <div class="provider-signup-badge">Word Dienstverlener</div>
+        <h2>Profiel aanmaken</h2>
+        <p>Bereik duizenden klanten in Suriname. Gratis, geen commissie.</p>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Voornaam</label>
+          <input type="text" id="pv-firstname" placeholder="Voornaam" />
+        </div>
+        <div class="form-group">
+          <label>Achternaam</label>
+          <input type="text" id="pv-lastname" placeholder="Achternaam" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>E-mailadres</label>
+        <input type="email" id="pv-email" placeholder="jouw@email.com" />
+      </div>
+      <div class="form-group">
+        <label>Wachtwoord</label>
+        <input type="password" id="pv-password" placeholder="Minimaal 6 tekens" />
+        <div class="pw-strength" id="pv-pw-strength"></div>
+      </div>
+      <div class="form-group">
+        <label>Wachtwoord bevestigen</label>
+        <input type="password" id="pv-confirm-password" placeholder="Herhaal wachtwoord" />
+      </div>
+      <div class="form-group">
+        <label>Telefoon (optioneel)</label>
+        <input type="tel" id="pv-phone" placeholder="+597 ..." />
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Categorie dienst</label>
+          <select id="pv-category">
+            <option value="">Selecteer categorie</option>
+            <option>Schilders</option>
+            <option>Elektriciens</option>
+            <option>Hoveniers</option>
+            <option>Bank- &amp; Mattenreiniging</option>
+            <option>Fotografie</option>
+            <option>Video &amp; Animatie</option>
+            <option>Muziek &amp; Audio</option>
+            <option>Coaching &amp; Training</option>
+            <option>Schoonheid &amp; Wellness</option>
+            <option>Evenementen</option>
+            <option>Grafisch Ontwerp</option>
+            <option>Bouw &amp; Constructie</option>
+            <option>Overig</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>District</label>
+          <select id="pv-district">
+            <option value="">Selecteer district</option>
+            <option>Paramaribo</option><option>Wanica</option><option>Nickerie</option>
+            <option>Coronie</option><option>Saramacca</option><option>Commewijne</option>
+            <option>Marowijne</option><option>Para</option><option>Brokopondo</option>
+            <option>Sipaliwini</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Werktijden</label>
+        <div class="sched-picker" id="pv-sched">
+          <div class="sched-days">
+            <button type="button" class="sched-day" data-day="ma" onclick="this.classList.toggle('active')">Ma</button>
+            <button type="button" class="sched-day" data-day="di" onclick="this.classList.toggle('active')">Di</button>
+            <button type="button" class="sched-day" data-day="wo" onclick="this.classList.toggle('active')">Wo</button>
+            <button type="button" class="sched-day" data-day="do" onclick="this.classList.toggle('active')">Do</button>
+            <button type="button" class="sched-day" data-day="vr" onclick="this.classList.toggle('active')">Vr</button>
+            <button type="button" class="sched-day" data-day="za" onclick="this.classList.toggle('active')">Za</button>
+            <button type="button" class="sched-day" data-day="zo" onclick="this.classList.toggle('active')">Zo</button>
+          </div>
+          <div class="sched-time-row">
+            <div class="sched-time-block">
+              <span class="sched-time-label">Van</span>
+              <span class="sched-time-lbl" id="pv-start-lbl">08:00</span>
+              <input type="range" class="sched-range" id="pv-start" min="0" max="1380" step="30" value="480"
+                oninput="document.getElementById('pv-start-lbl').textContent=mkdMinToTime(+this.value)">
+            </div>
+            <div class="sched-time-block">
+              <span class="sched-time-label">Tot</span>
+              <span class="sched-time-lbl" id="pv-end-lbl">17:00</span>
+              <input type="range" class="sched-range" id="pv-end" min="0" max="1380" step="30" value="1020"
+                oninput="document.getElementById('pv-end-lbl').textContent=mkdMinToTime(+this.value)">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Korte omschrijving van uw dienst</label>
+        <input type="text" id="pv-tagline" placeholder="bijv. Professioneel schilderwerk voor binnen en buiten" />
+      </div>
+      <div class="form-group">
+        <label>Tarief <span style="font-weight:400;color:var(--text-muted,#888)">(SRD per uur)</span></label>
+        <input type="number" id="pv-price" min="0" step="1" placeholder="bijv. 150" />
+      </div>
+      <div class="form-error hidden" id="provider-error"></div>
+      <button class="btn-primary btn-full" onclick="handleProviderSignup()">Profiel aanmaken</button>
+      <p class="form-footer">Al een account? <a onclick="switchAuthTab('login')">Inloggen</a></p>
+    </div><!-- /tab-provider -->
+
+  </div>
+</div><!-- /auth-overlay -->

@@ -1,0 +1,40 @@
+/* ══════════════════════════════════════════
+   MAKANDRA — FOOTER.CSS
+══════════════════════════════════════════ */
+
+.footer {
+  background: var(--dark);
+  color: rgba(255,255,255,.7);
+  padding: 72px 0 32px;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 56px;
+}
+.footer-brand .footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.footer-brand .logo-text { color: #fff; font-size: 20px; }
+.footer-brand p { font-size: 14px; line-height: 1.7; max-width: 260px; margin-bottom: 16px; }
+.footer-flag { font-size: 13px; color: rgba(255,255,255,.4); }
+.footer-col h4 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #fff; margin-bottom: 16px; }
+.footer-col a {
+  display: block;
+  font-size: 14px;
+  color: rgba(255,255,255,.55);
+  padding: 5px 0;
+  transition: color .2s;
+}
+.footer-col a:hover { color: var(--accent); }
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,.08);
+  padding-top: 28px;
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255,255,255,.3);
+}

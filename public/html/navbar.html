@@ -1,0 +1,54 @@
+<!--
+  partials/navbar.html
+  ────────────────────
+  Include this partial in index.html inside <body>, before any view.
+  All onclick handlers are defined in js/main.js.
+-->
+<nav id="navbar">
+  <div class="nav-container">
+    <div class="nav-logo" onclick="showView('home')">
+      <img src="../img/mkdra.png" alt="MaKandra Logo" class="nav-logo-img" />
+    </div>
+    <div class="nav-links">
+      <a class="nav-link klant-only" onclick="browseByCategory('')">Categorieën</a>
+      <a class="nav-link klant-only" onclick="showFavorites()">Favorieten</a>
+    </div>
+    <div class="nav-auth" id="nav-auth">
+      <button class="btn-ghost" onclick="openAuthModal('login')">Inloggen</button>
+      <button class="btn-secondary" onclick="openAuthModal('signup')">Aanmelden</button>
+      <button class="btn-accent" onclick="openAuthModal('provider')">Dienstverlener worden</button>
+    </div>
+    <div class="nav-user hidden" id="nav-user">
+      <div class="user-pill" onclick="toggleUserMenu()">
+        <div class="user-avatar-sm" id="nav-avatar">?</div>
+        <span id="nav-username">Gebruiker</span>
+        <span id="notif-badge" class="hidden" style="background:#e53e3e;color:#fff;border-radius:50%;padding:1px 6px;font-size:11px;margin-left:4px;"></span>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M2 4l4 4 4-4"/></svg>
+      </div>
+      <div class="user-dropdown hidden" id="user-dropdown">
+        <a onclick="showView('dashboard'); toggleUserMenu()">
+          <span>👤</span> Mijn Dashboard
+          <span id="dropdown-notif-badge" class="hidden" style="background:#e53e3e;color:#fff;border-radius:50%;padding:1px 6px;font-size:11px;margin-left:4px;"></span>
+        </a>
+        <a class="klant-only" onclick="showFavorites(); toggleUserMenu()">
+          <span>❤️</span> Favorieten
+        </a>
+        <div class="dropdown-divider"></div>
+        <a onclick="toggleDarkMode(); toggleUserMenu()" id="dark-mode-toggle-link">
+          <span id="dark-mode-icon">🌙</span> <span id="dark-mode-label">Nachtmodus</span>
+        </a>
+        <div class="dropdown-divider"></div>
+        <a onclick="logout()" class="logout-link">
+          <span>🚪</span> Uitloggen
+        </a>
+      </div>
+    </div>
+    <button class="nav-mobile-btn" onclick="toggleMobileMenu()">☰</button>
+  </div>
+  <div class="mobile-menu hidden" id="mobile-menu">
+    <a onclick="showFavorites(); toggleMobileMenu()">❤️ Favorieten</a>
+    <a onclick="openAuthModal('login'); toggleMobileMenu()">Inloggen</a>
+    <a onclick="openAuthModal('signup'); toggleMobileMenu()">Aanmelden</a>
+    <a onclick="openAuthModal('provider'); toggleMobileMenu()" class="mobile-provider-btn">Dienstverlener worden</a>
+  </div>
+</nav>

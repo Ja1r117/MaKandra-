@@ -38,8 +38,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ── Root redirect → SPA ───────────────────────────────────────────────────────
 app.get('/', (req, res) => {
-  const qs = Object.keys(req.query).length ? '?' + new URLSearchParams(req.query).toString() : '';
-  res.redirect(301, '/courses/' + qs);
+  res.sendFile(path.join(__dirname, 'public', 'html', 'index.html'));
+});
+
+app.get('/html/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'html', 'index.html'));
 });
 
 // ── Routes ────────────────────────────────────────────────────────────────────
@@ -164,6 +167,7 @@ app.use(errorHandler);
     )`);
 
     const alterCols = [
+      'ALTER TABLE users ADD COLUMN district           VARCHAR(100) NULL',
       'ALTER TABLE users ADD COLUMN dnd_mode           TINYINT(1)   NOT NULL DEFAULT 0',
       'ALTER TABLE users ADD COLUMN is_available        TINYINT(1)   NOT NULL DEFAULT 1',
       'ALTER TABLE users ADD COLUMN email_verified     TINYINT(1)   NOT NULL DEFAULT 1',

@@ -1,0 +1,75 @@
+<!--
+  views/browse.html
+  ──────────────────
+  Provider directory with sidebar filters.
+  JS populates: #browse-grid, #sidebar-cats, #results-count.
+  Filter state is managed entirely in main.js (applyFilters, resetFilters).
+-->
+<div id="view-browse" class="view">
+  <div class="browse-header">
+    <div class="container">
+      <h1>Vind een <em>Dienstverlener</em></h1>
+      <p>Blader door onze gecertificeerde professionals in heel Suriname</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="browse-layout">
+
+      <!-- Sidebar filters -->
+      <aside class="browse-sidebar">
+        <div class="sidebar-section">
+          <span class="sidebar-label">Naam van dienst</span>
+          <div class="sidebar-search-wrap">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input type="text" id="browse-search" placeholder="Zoek op naam…" oninput="applyFilters()" />
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <span class="sidebar-label">District</span>
+          <select id="filter-district" onchange="applyFilters()">
+            <option value="">Alle districten</option>
+            <option>Paramaribo</option><option>Wanica</option><option>Nickerie</option>
+            <option>Coronie</option><option>Saramacca</option><option>Commewijne</option>
+            <option>Marowijne</option><option>Para</option><option>Brokopondo</option>
+            <option>Sipaliwini</option>
+          </select>
+        </div>
+        <div class="sidebar-section">
+          <span class="sidebar-label">Sorteren</span>
+          <select id="filter-sort" onchange="applyFilters()">
+            <option value="score">Beste score</option>
+            <option value="reviews">Meeste beoordelingen</option>
+            <option value="name">Naam A–Z</option>
+          </select>
+        </div>
+        <div class="sidebar-section">
+          <span class="sidebar-label">Categorieën</span>
+          <div class="sidebar-cat-list" id="sidebar-cats">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+        <button class="btn-reset" onclick="resetFilters()">↺ Filters wissen</button>
+      </aside>
+
+      <!-- Results grid -->
+      <main class="browse-main">
+        <div class="browse-results-bar">
+          <span id="results-count">Laden…</span>
+        </div>
+        <div class="providers-grid" id="browse-grid">
+          <!-- Rendered by JS -->
+        </div>
+        <div class="empty-state hidden" id="browse-empty">
+          <div class="empty-icon">🔍</div>
+          <h3>Geen resultaten</h3>
+          <p>Probeer andere zoektermen of verwijder filters</p>
+          <button class="btn-primary" onclick="resetFilters()">Filters wissen</button>
+        </div>
+      </main>
+
+    </div>
+  </div>
+</div><!-- /view-browse -->

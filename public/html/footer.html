@@ -1,0 +1,45 @@
+<!--
+  partials/footer.html
+  ─────────────────────
+  Shared footer — used inside view-home (and any future full-page views).
+  All onclick handlers are defined in js/main.js.
+-->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <img src="../img/mkdra.png" alt="MaKandra" style="height:100px;width:auto;" />
+        </div>
+        <p>MaKandra staat voor samenwerking en vooruitgang. Wij geloven in persoonlijke service en duurzame relaties, zodat elke klant zich gehoord en geholpen voelt.</p>
+        <div class="footer-flag">🇸🇷 Trots gemaakt in Suriname</div>
+      </div>
+      <div class="footer-col">
+        <h4>Diensten</h4>
+        <a onclick="browseByCategory('Schilders')">Schilders</a>
+        <a onclick="browseByCategory('Elektriciens')">Elektriciens</a>
+        <a onclick="browseByCategory('Hoveniers')">Hoveniers</a>
+        <a onclick="browseByCategory('Schoonmaak')">Schoonmaak</a>
+        <a onclick="browseByCategory('Overig')">Overig</a>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a onclick="showView('browse')">Alle dienstverleners</a>
+        <a onclick="openAuthModal('provider')">Dienstverlener worden</a>
+        <a onclick="openAuthModal('signup')">Account aanmaken</a>
+        <a onclick="showFavorites()">Mijn favorieten</a>
+      </div>
+      <div class="footer-col">
+        <h4>Districten</h4>
+        <a onclick="browseByDistrict('Paramaribo')">Paramaribo</a>
+        <a onclick="browseByDistrict('Wanica')">Wanica</a>
+        <a onclick="browseByDistrict('Nickerie')">Nickerie</a>
+        <a onclick="browseByDistrict('Commewijne')">Commewijne</a>
+        <a onclick="browseByDistrict('Para')">Para</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2025 MaKandra · Alle rechten voorbehouden · Suriname
+    </div>
+  </div>
+</footer>

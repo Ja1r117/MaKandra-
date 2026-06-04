@@ -1,0 +1,40 @@
+<!--
+  partials/modal-review.html
+  ───────────────────────────
+  Opened by openReviewModal(providerId) in main.js.
+  Score slider (1–100 %) sets review-rating; text goes in review-text.
+-->
+<div id="review-overlay" class="overlay hidden" onclick="closeReviewModal(event)">
+  <div class="modal" id="review-modal">
+    <button class="modal-x" onclick="closeReviewModal()">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+    <div class="modal-body">
+      <div class="modal-hero-text">
+        <h2>Schrijf een beoordelingsscore</h2>
+        <p>Deel uw ervaring en geef een score aan deze dienstverlener</p>
+      </div>
+      <div class="form-group">
+        <label>Gebruikersscore (1–100%)</label>
+        <div id="score-slider-wrap" style="padding:4px 0">
+          <input type="range" id="review-rating" class="score-slider"
+                 min="1" max="100" value="75" step="1"
+                 oninput="updateSliderScore(this.value)" />
+          <div class="score-slider-display">
+            <span class="score-slider-num" id="review-pct-label" style="color:#16a34a">75</span>
+            <span class="score-slider-pct">%</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Uw recensie</label>
+        <textarea id="review-text" rows="4" placeholder="Beschrijf uw ervaring met deze dienstverlener…"></textarea>
+      </div>
+      <input type="hidden" id="review-target-id" />
+      <div class="form-error hidden" id="review-error"></div>
+      <button class="btn-primary btn-full" onclick="submitReview()">Beoordelingsscore plaatsen</button>
+    </div>
+  </div>
+</div>
