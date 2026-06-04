@@ -30,7 +30,7 @@ router.get('/bookings/:id', async (req, res) => {
     const [rows] = await db.query(
       `SELECT b.*, u.name AS klant_name, u.email AS klant_email
        FROM bookings b JOIN users u ON b.klant_id = u.id
-       WHERE b.dienstverlener_id = ? ORDER BY b.date ASC, b.time ASC`,
+       WHERE b.dienstverlener_id = ? ORDER BY b.created_at DESC`,
       [req.params.id]
     );
     res.json(rows);
@@ -43,7 +43,7 @@ router.get('/my-bookings/:id', async (req, res) => {
     const [rows] = await db.query(
       `SELECT b.*, u.name AS dienstverlener_name
        FROM bookings b JOIN users u ON b.dienstverlener_id = u.id
-       WHERE b.klant_id = ? ORDER BY b.date ASC, b.time ASC`,
+       WHERE b.klant_id = ? ORDER BY b.created_at DESC`,
       [req.params.id]
     );
     res.json(rows);

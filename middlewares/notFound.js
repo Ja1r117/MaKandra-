@@ -8,6 +8,7 @@
  *   app.use(errorHandler);    // last
  */
 export function notFound(req, res, next) {
+  if (req.url === '/favicon.ico') return res.status(204).end();
   const err = new Error(`Route niet gevonden: ${req.method} ${req.url}`);
   err.status = 404;
   next(err);

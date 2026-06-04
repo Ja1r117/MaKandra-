@@ -562,7 +562,8 @@ function resetFilters() {
 window.resetFilters = resetFilters;
 
 function browseByCategory(cat) {
-  if (currentUser && currentUser.role === 'dienstverlener') return;
+  if (!currentUser) { openAuthModal('login'); return; }
+  if (currentUser.role === 'dienstverlener') return;
   activeCat = cat;
   const bs = document.getElementById('browse-search');
   if (bs) bs.value = '';
@@ -592,6 +593,7 @@ function buildDistrictFilters() {
 
 // Hero search (if hero has search fields)
 function heroSearch() {
+  if (!currentUser) { openAuthModal('login'); return; }
   const q    = document.getElementById('hero-search')?.value || '';
   const dist = document.getElementById('hero-district')?.value || '';
   activeCat = null; // clear any active category so results show across all categories
@@ -2121,38 +2123,57 @@ window.adminDeleteUser = adminDeleteUser;
 // BOOKINGS
 // ─────────────────────────────────────────
 
+function _renderDVBkList() {
+  const el = document.getElementById('dv-bk-list');
+  if (!el) return;
+  if (!_dvBkCache.length) { el.innerHTML = '<p class="empty-plain">Geen boekingen.</p>'; return; }
+  const total = _dvBkCache.length;
+  const pages = Math.ceil(total / BK_PAGE_SIZE);
+  _dvBkPage = Math.max(0, Math.min(_dvBkPage, pages - 1));
+  const slice = _dvBkCache.slice(_dvBkPage * BK_PAGE_SIZE, (_dvBkPage + 1) * BK_PAGE_SIZE);
+  el.innerHTML = slice.map(b =>
+    '<div class="booking-item">' +
+      '<div class="booking-info">' +
+        '<strong>' + esc(b.klant_name) + '</strong>' +
+        '<div>' + b.date + (b.time ? ' om ' + b.time : '') + (b.duration_minutes ? ' (' + fmtDur(b.duration_minutes) + ')' : '') + '</div>' +
+        (b.message ? '<div class="booking-msg">"' + esc(b.message) + '"</div>' : '') +
+      '</div>' +
+      '<div class="booking-right">' +
+        statusBadge(b.status) +
+        (b.status === 'pending'
+          ? '<div class="booking-actions">' +
+              '<button class="btn-ok" onclick="respondBooking(' + b.id + ',\'accepted\',' + b.klant_id + ')">Accepteren</button>' +
+              '<button class="btn-no" onclick="respondBooking(' + b.id + ',\'declined\',' + b.klant_id + ')">Weigeren</button>' +
+            '</div>'
+          : b.status === 'accepted'
+          ? '<div class="booking-actions">' +
+              '<button class="btn-ok" onclick="completeBooking(' + b.id + ',' + b.klant_id + ')">✅ Voltooien</button>' +
+            '</div>'
+          : '') +
+      '</div>' +
+    '</div>'
+  ).join('') +
+  (pages > 1
+    ? '<div class="bk-pagination">' +
+        '<button class="bk-page-btn" onclick="dvBkPrev()" ' + (_dvBkPage === 0 ? 'disabled' : '') + '>‹ Vorige</button>' +
+        '<span>' + (_dvBkPage + 1) + ' / ' + pages + '</span>' +
+        '<button class="bk-page-btn" onclick="dvBkNext()" ' + (_dvBkPage >= pages - 1 ? 'disabled' : '') + '>Volgende ›</button>' +
+      '</div>'
+    : '');
+}
+window._renderDVBkList = _renderDVBkList;
+function dvBkPrev() { _dvBkPage--; _renderDVBkList(); } window.dvBkPrev = dvBkPrev;
+function dvBkNext() { _dvBkPage++; _renderDVBkList(); } window.dvBkNext = dvBkNext;
+
 async function loadBookingsDV() {
   const el = document.getElementById('dv-bk-list');
   if (!el) return;
   try {
     const r = await fetch(API + '/bookings/' + currentUser.id);
-    const bookings = await r.json();
-    calBookings = bookings;
-
-    if (!bookings.length) { el.innerHTML = '<p class="empty-plain">Geen boekingen.</p>'; return; }
-
-    el.innerHTML = bookings.map(b =>
-      '<div class="booking-item">' +
-        '<div class="booking-info">' +
-          '<strong>' + esc(b.klant_name) + '</strong>' +
-          '<div>' + b.date + (b.time ? ' om ' + b.time : '') + (b.duration_minutes ? ' (' + fmtDur(b.duration_minutes) + ')' : '') + '</div>' +
-          (b.message ? '<div class="booking-msg">"' + esc(b.message) + '"</div>' : '') +
-        '</div>' +
-        '<div class="booking-right">' +
-          statusBadge(b.status) +
-          (b.status === 'pending'
-            ? '<div class="booking-actions">' +
-                '<button class="btn-ok" onclick="respondBooking(' + b.id + ',\'accepted\',' + b.klant_id + ')">Accepteren</button>' +
-                '<button class="btn-no" onclick="respondBooking(' + b.id + ',\'declined\',' + b.klant_id + ')">Weigeren</button>' +
-              '</div>'
-            : b.status === 'accepted'
-            ? '<div class="booking-actions">' +
-                '<button class="btn-ok" onclick="completeBooking(' + b.id + ',' + b.klant_id + ')">✅ Voltooien</button>' +
-              '</div>'
-            : '') +
-        '</div>' +
-      '</div>'
-    ).join('');
+    _dvBkCache = await r.json();
+    calBookings = _dvBkCache;
+    _dvBkPage = 0;
+    _renderDVBkList();
   } catch { el.innerHTML = '<p>Fout bij laden boekingen.</p>'; }
 }
 
@@ -2186,20 +2207,30 @@ async function completeBooking(bookingId, klantId) {
 window.completeBooking = completeBooking;
 
 let _klantBkCache = [];
+let _klantBkPage  = 0;
+let _dvBkCache    = [];
+let _dvBkPage     = 0;
+const BK_PAGE_SIZE = 5;
 
 function klantBkFilter(filter, btn) {
   document.querySelectorAll('.bk-filter').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
+  _klantBkPage = 0;
   _renderKlantBkList(filter);
 }
 window.klantBkFilter = klantBkFilter;
+function klantBkPrev(f) { _klantBkPage--; _renderKlantBkList(f); } window.klantBkPrev = klantBkPrev;
+function klantBkNext(f) { _klantBkPage++; _renderKlantBkList(f); } window.klantBkNext = klantBkNext;
 
 function _renderKlantBkList(filter) {
   const el = document.getElementById('kl-bk-list');
   if (!el) return;
   const bookings = filter === 'all' ? _klantBkCache : _klantBkCache.filter(b => b.status === filter);
   if (!bookings.length) { el.innerHTML = '<p class="empty-plain">Geen boekingen gevonden.</p>'; return; }
-  el.innerHTML = bookings.map(b =>
+  const pages = Math.ceil(bookings.length / BK_PAGE_SIZE);
+  _klantBkPage = Math.max(0, Math.min(_klantBkPage, pages - 1));
+  const slice = bookings.slice(_klantBkPage * BK_PAGE_SIZE, (_klantBkPage + 1) * BK_PAGE_SIZE);
+  el.innerHTML = slice.map(b =>
     '<div class="booking-item">' +
       '<div class="booking-info">' +
         '<strong>' + esc(b.dienstverlener_name) + '</strong>' +
@@ -2216,7 +2247,14 @@ function _renderKlantBkList(filter) {
         '</div>' +
       '</div>' +
     '</div>'
-  ).join('');
+  ).join('') +
+  (pages > 1
+    ? '<div class="bk-pagination">' +
+        '<button class="bk-page-btn" onclick="klantBkPrev(\'' + (filter||'all') + '\')" ' + (_klantBkPage === 0 ? 'disabled' : '') + '>‹ Vorige</button>' +
+        '<span>' + (_klantBkPage + 1) + ' / ' + pages + '</span>' +
+        '<button class="bk-page-btn" onclick="klantBkNext(\'' + (filter||'all') + '\')" ' + (_klantBkPage >= pages - 1 ? 'disabled' : '') + '>Volgende ›</button>' +
+      '</div>'
+    : '');
 }
 
 async function loadKlantBookings(filter) {
@@ -3146,6 +3184,8 @@ function injectDashCSS() {
     '.bk-filter{background:#f0ede8;border:1.5px solid #d5d0c8;color:#555;border-radius:20px;padding:5px 14px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s}',
     '.bk-filter.active{background:#6c47ff;border-color:#6c47ff;color:#fff}',
     '.bk-filter:hover:not(.active){background:#e6e0ff;border-color:#6c47ff;color:#6c47ff}',
+    '.bk-pagination{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;font-size:.85rem;color:#888}',
+    '.bk-page-btn{background:#f0ede8;border:1.5px solid #d5d0c8;color:#555;border-radius:20px;padding:5px 14px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .15s}.bk-page-btn:hover:not(:disabled){background:var(--primary);border-color:var(--primary);color:#fff}.bk-page-btn:disabled{opacity:.4;cursor:default}',
     '.bk-rebook-btn{background:#f0ede8;border:1.5px solid #d5d0c8;color:#555;border-radius:20px;padding:4px 12px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}',
     '.bk-rebook-btn:hover{background:#6c47ff;border-color:#6c47ff;color:#fff}',
     'body.dark-mode .kl-recent-row{border-color:#2a2a3e}',
