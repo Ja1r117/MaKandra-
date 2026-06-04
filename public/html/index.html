@@ -19,8 +19,8 @@
         <img src="../img/mkdra.png" alt="MaKandra Logo" class="nav-logo-img" />
       </div>
       <div class="nav-links">
-        <a class="nav-link klant-only" onclick="browseByCategory('')">Categorieën</a>
-        <a class="nav-link klant-only" onclick="showFavorites()">Favorieten</a>
+        <a class="nav-link klant-only" onclick="browseByCategory('')" style="display:none">Categorieën</a>
+        <a class="nav-link klant-only" onclick="showFavorites()" style="display:none">Favorieten</a>
       </div>
       <div class="nav-auth" id="nav-auth">
         <button class="btn-ghost" onclick="openAuthModal('login')">Inloggen</button>
@@ -251,7 +251,7 @@
           <div class="cta-left">
             <h2>Bent u een dienstverlener?<br><em>Word vandaag lid</em></h2>
             <p>Bereik duizenden klanten in heel Suriname. Maak een gratis profiel aan en begin vandaag. Geen commissie, nooit.</p>
-            <button class="btn-cta-big" onclick="openAuthModal('provider')">Profiel aanmaken</button>
+            <button id="cta-profiel-aanmaken" class="btn-cta-big" onclick="openAuthModal('provider')">Profiel aanmaken</button>
           </div>
           <div class="cta-nums">
             <div class="cta-num-item"><strong id="stat-dv2">—</strong><span>Actieve dienstverleners</span></div>

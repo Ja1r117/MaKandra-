@@ -306,6 +306,10 @@ function afterLogin() {
   const heroSearch = document.getElementById('hero-search-box');
   if (heroSearch) heroSearch.style.display = isDV ? 'none' : '';
 
+  // Hide the CTA "Profiel aanmaken" button when logged in
+  const ctaBtn = document.getElementById('cta-profiel-aanmaken');
+  if (ctaBtn) ctaBtn.style.display = 'none';
+
   // Add "Mijn Profiel" link for dienstverleners
   const dropdown = document.getElementById('user-dropdown');
   if (dropdown && currentUser.role === 'dienstverlener') {
@@ -845,7 +849,6 @@ function _renderProfile(w) {
               '<h3>Contact</h3>' +
               (w.email ? '<div class="info-row"><span>E-mail</span><span style="word-break:break-all;font-size:.8rem">' + esc(w.email) + '</span></div>' : '') +
               (w.phone ? '<div class="info-row"><span>Telefoon</span><span>' + esc(w.phone) + '</span></div>' : '') +
-              (currentUser ? '<button class="btn-stuur-bericht" onclick="openChat(' + w.id + ',\'' + esc(w.name) + '\',\'' + esc(w.profile_picture || '') + '\')">💬 Stuur bericht</button>' : '') +
             '</div>'
           : '') +
       '</div>' +
@@ -1861,10 +1864,6 @@ function _klantProfiel() {
       '<div class="form-group"><label>Voornaam</label><input type="text" id="kl-firstname" value="' + esc(currentUser.first_name || currentUser.name.split(' ')[0] || '') + '"></div>' +
       '<div class="form-group"><label>Achternaam</label><input type="text" id="kl-lastname" value="' + esc(currentUser.last_name || (currentUser.name.includes(' ') ? currentUser.name.split(' ').slice(1).join(' ') : '')) + '"></div>' +
     '</div>' +
-    '<div class="form-group">' +
-      '<label>Over mij <span style="color:#aaa;font-size:.8rem;font-weight:400">(optioneel)</span></label>' +
-      '<textarea id="kl-bio" rows="4" placeholder="Vertel iets over jezelf...">' + esc(currentUser.bio || '') + '</textarea>' +
-    '</div>' +
     '<button class="btn-primary" onclick="saveKlantProfile()">Opslaan</button>' +
     '<div class="form-error" id="kl-prof-msg"></div>' +
   '</div>';
@@ -1874,18 +1873,17 @@ async function saveKlantProfile() {
   const first_name = document.getElementById('kl-firstname')?.value.trim() || '';
   const last_name  = document.getElementById('kl-lastname')?.value.trim()  || '';
   const name       = last_name ? first_name + ' ' + last_name : first_name;
-  const bio        = document.getElementById('kl-bio')?.value.trim() || null;
   const msgEl      = document.getElementById('kl-prof-msg');
 
   if (!first_name) { msgEl.style.color = ''; msgEl.textContent = 'Voornaam is verplicht.'; return; }
   try {
     const r = await fetch(API + '/klant-profile/' + currentUser.id, {
       method: 'PUT', headers: ct(),
-      body: JSON.stringify({ first_name, last_name: last_name || null, name, bio }),
+      body: JSON.stringify({ first_name, last_name: last_name || null, name }),
     });
     const data = await r.json();
     if (!r.ok) { msgEl.style.color = ''; msgEl.textContent = data.error; return; }
-    Object.assign(currentUser, { first_name, last_name: last_name || null, name, bio });
+    Object.assign(currentUser, { first_name, last_name: last_name || null, name });
     localStorage.setItem('mkd_user', JSON.stringify(currentUser));
     msgEl.style.color = 'green';
     msgEl.textContent = 'Profiel opgeslagen!';
@@ -2453,7 +2451,14 @@ async function saveProfile() {
     msgEl.textContent = 'Profiel opgeslagen!';
     if (document.getElementById('nav-username')) document.getElementById('nav-username').textContent = name;
     setNavAvatar();
-    // Refresh allWorkers so profile view shows updated data immediately
+    // Update overzicht stat cards immediately
+    const statCards = document.querySelectorAll('#dv-p-overzicht .dash-stat-row .dash-card strong');
+    if (statCards[0]) statCards[0].textContent = category || '-';
+    if (statCards[1]) statCards[1].textContent = district || '-';
+    if (statCards[2]) statCards[2].textContent = hourly_rate ? 'SRD ' + hourly_rate + '/u' : '-';
+    // Sync into allWorkers so profile view shows updated tags immediately
+    const wi = allWorkers.findIndex(w => w.id === currentUser.id);
+    if (wi !== -1) Object.assign(allWorkers[wi], { name, category, experience, bio, hourly_rate: hourly_rate || null, district, phone, working_hours });
     fetch(API + '/dienstverleners').then(r => r.json()).then(ws => { allWorkers = ws; }).catch(() => {});
   } catch { msgEl.textContent = 'Verbindingsfout.'; }
 }
