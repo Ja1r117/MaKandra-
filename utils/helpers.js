@@ -34,6 +34,7 @@ export function buildUserPayload(u) {
     working_hours:   u.working_hours  || null,
     profile_picture: u.profile_picture || null,
     is_available:    u.is_available   ?? 1,
+    dnd_mode:        u.dnd_mode       || 0,
     is_admin:        u.is_admin       || 0,
   };
 }
