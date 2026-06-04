@@ -1303,6 +1303,7 @@ function renderDVDash(el) {
         '<nav>' +
           '<div class="dash-menu-item active" onclick="dvTab(\'overzicht\',this)">Overzicht</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'boekingen\',this)">Boekingen</div>' +
+          '<div class="dash-menu-item" onclick="dvTab(\'opdrachten\',this)">Opdrachten</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'agenda\',this)">Agenda</div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'notificaties\',this)">Notificaties <span id="dash-notif-badge" class="hidden" style="background:#e53e3e;color:#fff;border-radius:50%;padding:1px 6px;font-size:11px;margin-left:4px;"></span></div>' +
           '<div class="dash-menu-item" onclick="dvTab(\'portfolio\',this)">Portfolio</div>' +
@@ -1329,6 +1330,7 @@ function dvTab(panel, el) {
   const target = document.getElementById('dv-p-' + panel);
   if (target) target.classList.remove('hidden');
   if (panel === 'boekingen')    { loadBookingsDV(); _resetDVBkSubTab(); }
+  if (panel === 'opdrachten')   loadDVOpdrachten();
   if (panel === 'agenda')       renderCalendar();
   if (panel === 'notificaties') loadDVNotifications();
   if (panel === 'portfolio')    loadDVPortfolioTab();
@@ -1640,6 +1642,7 @@ function renderKlantDash(el) {
         '<nav>' +
           '<div class="dash-menu-item active" onclick="klantTab(\'overzicht\',this)">Overzicht</div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'boekingen\',this)">Mijn boekingen</div>' +
+          '<div class="dash-menu-item" onclick="klantTab(\'opdrachten\',this)">Opdrachten</div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'favorieten\',this)">Favorieten</div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'reviews\',this)">Mijn reviews</div>' +
           '<div class="dash-menu-item" onclick="klantTab(\'notificaties\',this)">Notificaties <span id="dash-notif-badge" class="hidden" style="background:#e53e3e;color:#fff;border-radius:50%;padding:1px 6px;font-size:11px;margin-left:4px;"></span></div>' +
@@ -1664,6 +1667,7 @@ function klantTab(panel, el) {
   const target = document.getElementById('kl-p-' + panel);
   if (target) target.classList.remove('hidden');
   if (panel === 'boekingen')    { loadKlantBookings('all'); _resetKlantBkSubTab(); }
+  if (panel === 'opdrachten')   loadKlantOpdrachten();
   if (panel === 'favorieten')   loadKlantFavorieten();
   if (panel === 'reviews')      loadKlantReviews();
   if (panel === 'notificaties') loadKlantNotifications();
