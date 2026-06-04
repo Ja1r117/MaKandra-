@@ -1613,12 +1613,12 @@ function _dvAccount() {
     _darkModeCard() +
     '<div class="form-group"><label>Huidig e-mailadres</label><input type="text" disabled value="' + esc(currentUser.email) + '" style="background:#f5f5f5;color:#888"></div>' +
     '<div class="form-group"><label>Nieuw e-mailadres <span style="color:#aaa;font-size:.8rem">(laat leeg om ongewijzigd te laten)</span></label><input type="email" id="dv-new-email" placeholder="nieuw@email.com"></div>' +
-    '<div class="form-group"><label>Huidig wachtwoord <span style="color:#e53e3e">*</span></label><input type="password" id="dv-cur-pw" placeholder="Verplicht voor wijzigingen"></div>' +
     '<div class="form-error" id="dv-acc-msg"></div>' +
     '<button class="btn-primary" onclick="saveAccountDV()">E-mail opslaan</button>' +
     '<hr style="margin:20px 0;border:none;border-top:1px solid #f0f0f0">' +
     '<div class="dashboard-panel-title" style="font-size:1rem">Wachtwoord wijzigen</div>' +
     '<p style="font-size:.83rem;color:#888;margin-bottom:14px">Na het opslaan ontvang je een bevestigingsmail. Klik op de link in de e-mail om het nieuwe wachtwoord te activeren.</p>' +
+    '<div class="form-group"><label>Huidig wachtwoord <span style="color:#e53e3e">*</span></label><input type="password" id="dv-cur-pw" placeholder="Verplicht voor wijzigingen"></div>' +
     '<div class="form-group"><label>Nieuw wachtwoord</label><input type="password" id="dv-new-pw" placeholder="Minimaal 6 tekens"></div>' +
     '<div class="form-group"><label>Nieuw wachtwoord bevestigen</label><input type="password" id="dv-new-pw-confirm" placeholder="Herhaal nieuw wachtwoord"></div>' +
     '<div class="form-error" id="dv-pw-msg"></div>' +
@@ -2029,12 +2029,12 @@ function _klantAccount() {
     '<div class="form-group"><label>Huidig e-mailadres</label><input type="text" disabled value="' + esc(currentUser.email) + '" style="background:#f5f5f5;color:#888"></div>' +
     '<div class="form-group"><label>Nieuw e-mailadres <span style="color:#aaa;font-size:.8rem">(laat leeg om ongewijzigd te laten)</span></label><input type="email" id="kl-new-email" placeholder="nieuw@email.com"></div>' +
     '<div class="form-group"><label>District</label><select id="kl-district">' + distOpts(currentUser.district) + '</select></div>' +
-    '<div class="form-group"><label>Huidig wachtwoord <span style="color:#e53e3e">*</span></label><input type="password" id="kl-cur-pw" placeholder="Verplicht voor wijzigingen"></div>' +
     '<div class="form-error" id="kl-acc-msg"></div>' +
     '<button class="btn-primary" onclick="saveAccountKlant()">E-mail / District opslaan</button>' +
     '<hr style="margin:20px 0;border:none;border-top:1px solid #f0f0f0">' +
     '<div class="dashboard-panel-title" style="font-size:1rem">Wachtwoord wijzigen</div>' +
     '<p style="font-size:.83rem;color:#888;margin-bottom:14px">Na het opslaan ontvang je een bevestigingsmail. Klik op de link in de e-mail om het nieuwe wachtwoord te activeren.</p>' +
+    '<div class="form-group"><label>Huidig wachtwoord <span style="color:#e53e3e">*</span></label><input type="password" id="kl-cur-pw" placeholder="Verplicht voor wijzigingen"></div>' +
     '<div class="form-group"><label>Nieuw wachtwoord</label><input type="password" id="kl-new-pw" placeholder="Minimaal 6 tekens"></div>' +
     '<div class="form-group"><label>Nieuw wachtwoord bevestigen</label><input type="password" id="kl-new-pw-confirm" placeholder="Herhaal nieuw wachtwoord"></div>' +
     '<div class="form-error" id="kl-pw-msg"></div>' +
